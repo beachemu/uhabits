@@ -88,6 +88,9 @@ class HabitRecord {
     @field:Column
     var uuid: String? = null
 
+    @field:Column(name = "subcategory_id")
+    var subcategoryId: Long? = null
+
     fun copyFrom(model: Habit) {
         id = model.id
         name = model.name
@@ -102,6 +105,7 @@ class HabitRecord {
         position = model.position
         question = model.question
         uuid = model.uuid
+        subcategoryId = model.subcategoryId
         val (numerator, denominator) = model.frequency
         freqNum = numerator
         freqDen = denominator
@@ -130,6 +134,7 @@ class HabitRecord {
         habit.unit = unit!!
         habit.position = position!!
         habit.uuid = uuid
+        habit.subcategoryId = subcategoryId
         if (reminderHour != null && reminderMin != null) {
             habit.reminder = Reminder(
                 reminderHour!!,

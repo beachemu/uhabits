@@ -16,8 +16,11 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.isoron.uhabits.core
+package org.isoron.uhabits.core.models
 
-const val DATABASE_FILENAME = "uhabits.db"
-
-const val DATABASE_VERSION = 26
+data class Category(
+    var id: Long? = null,
+    var name: String = "",
+    var color: PaletteColor = PaletteColor(8),
+    var position: Int = 0,
+)
