@@ -9,3 +9,4 @@ plugins {
 apply {
     from("gradle/translators.gradle.kts")
 }
+val defaultTargetSdkVersion by extra(36)

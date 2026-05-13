@@ -45,11 +45,12 @@ android {
 
     defaultConfig {
         versionCode = 20301
-        versionName = "2.3.1"
+        versionName = "3.0.0"
         minSdk = 28
-        targetSdk = 36
-        applicationId = "org.isoron.uhabits"
+        targetSdkVersion(rootProject.extra["defaultTargetSdkVersion"] as Int)
+        applicationId = "org.beachemu.uhabits"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionNameSuffix = "cat"
     }
 
     signingConfigs {
@@ -103,6 +104,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.appcompat)
+    implementation(libs.drawerlayout)
     implementation(libs.legacy.preference.v14)
     implementation(libs.legacy.support.v4)
     implementation(libs.material)

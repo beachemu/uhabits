@@ -28,8 +28,11 @@ import org.isoron.uhabits.core.database.DatabaseOpener
 import org.isoron.uhabits.core.io.Logging
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.sqlite.CategoryRepository
 import org.isoron.uhabits.core.models.sqlite.SQLModelFactory
 import org.isoron.uhabits.core.models.sqlite.SQLiteHabitList
+import org.isoron.uhabits.core.models.sqlite.SavedViewRepository
+import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.preferences.WidgetPreferences
 import org.isoron.uhabits.core.reminders.ReminderScheduler
@@ -113,5 +116,23 @@ class HabitsModule(dbFile: File) {
     @AppScope
     fun getDatabase(): Database {
         return db
+    }
+
+    @Provides
+    @AppScope
+    fun getCategoryRepository(): CategoryRepository {
+        return CategoryRepository(db)
+    }
+
+    @Provides
+    @AppScope
+    fun getSubcategoryRepository(): SubcategoryRepository {
+        return SubcategoryRepository(db)
+    }
+
+    @Provides
+    @AppScope
+    fun getSavedViewRepository(): SavedViewRepository {
+        return SavedViewRepository(db)
     }
 }

@@ -20,9 +20,11 @@
 package org.isoron.uhabits.activities.habits.list
 
 import android.content.Context
+import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
+import androidx.drawerlayout.widget.DrawerLayout
 import nl.dionsegijn.konfetti.xml.KonfettiView
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ScrollableChart
@@ -33,6 +35,7 @@ import org.isoron.uhabits.activities.habits.list.views.HabitCardListView
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListViewFactory
 import org.isoron.uhabits.activities.habits.list.views.HeaderView
 import org.isoron.uhabits.activities.habits.list.views.HintView
+import org.isoron.uhabits.activities.habits.list.views.NavigationDrawerView
 import org.isoron.uhabits.core.models.ModelObservable
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
@@ -64,8 +67,11 @@ class ListHabitsRootView @Inject constructor(
     midnightTimer: MidnightTimer,
     runner: TaskRunner,
     private val listAdapter: HabitCardListAdapter,
-    habitCardListViewFactory: HabitCardListViewFactory
+    habitCardListViewFactory: HabitCardListViewFactory,
+    val drawerView: NavigationDrawerView
 ) : FrameLayout(context), ModelObservable.Listener {
+
+    val drawerLayout: DrawerLayout = DrawerLayout(context)
 
     val listView: HabitCardListView = habitCardListViewFactory.create()
     val llEmpty = EmptyListView(context)
@@ -98,10 +104,24 @@ class ListHabitsRootView @Inject constructor(
             toolbar = tbar,
             title = resources.getString(R.string.main_activity_title),
             color = PaletteColor(17),
-            displayHomeAsUpEnabled = false,
+            displayHomeAsUpEnabled = true,
             theme = currentTheme()
         )
-        addView(rootView, MATCH_PARENT, MATCH_PARENT)
+        drawerLayout.addView(
+            rootView,
+            DrawerLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+        )
+        val drawerWidth = minOf(
+            resources.displayMetrics.widthPixels - dp(56f).toInt(),
+            dp(320f).toInt()
+        )
+        drawerLayout.addView(
+            drawerView,
+            DrawerLayout.LayoutParams(drawerWidth, MATCH_PARENT).apply {
+                gravity = Gravity.START
+            }
+        )
+        addView(drawerLayout, MATCH_PARENT, MATCH_PARENT)
         listAdapter.setListView(listView)
     }
 

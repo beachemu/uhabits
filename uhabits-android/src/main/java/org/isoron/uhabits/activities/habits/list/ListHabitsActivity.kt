@@ -22,18 +22,22 @@ package org.isoron.uhabits.activities.habits.list
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.checkSelfPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.isoron.uhabits.BaseExceptionHandler
 import org.isoron.uhabits.HabitsApplication
+import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
@@ -73,6 +77,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         }
 
     private lateinit var menu: ListHabitsMenu
+    private lateinit var drawerToggle: ActionBarDrawerToggle
 
     override fun onQuestionMarksChanged() {
         invalidateOptionsMenu()
@@ -103,6 +108,35 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         component.listHabitsBehavior.onStartup()
         rootView.applyRootViewInsets()
         setContentView(rootView)
+        setSupportActionBar(rootView.tbar)
+        drawerToggle = ActionBarDrawerToggle(
+            this,
+            rootView.drawerLayout,
+            rootView.tbar,
+            R.string.nav_drawer_open,
+            R.string.nav_drawer_close
+        )
+        rootView.drawerLayout.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        drawerToggle.syncState()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        drawerToggle.onConfigurationChanged(newConfig)
+    }
+
+    override fun onBackPressed() {
+        if (rootView.drawerLayout.isDrawerOpen(Gravity.START)) {
+            rootView.drawerLayout.closeDrawer(Gravity.START)
+        } else {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        }
     }
 
     override fun onPause() {
@@ -117,6 +151,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         adapter.refresh()
         screen.onAttached()
         rootView.postInvalidate()
+        rootView.drawerView.reload()
         midnightTimer.onResume()
 
         if (appComponent.reminderScheduler.hasHabitsWithReminders()) {

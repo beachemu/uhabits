@@ -26,6 +26,9 @@ import org.isoron.uhabits.core.io.GenericImporter
 import org.isoron.uhabits.core.io.Logging
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.sqlite.CategoryRepository
+import org.isoron.uhabits.core.models.sqlite.SavedViewRepository
+import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.preferences.WidgetPreferences
 import org.isoron.uhabits.core.reminders.ReminderScheduler
@@ -63,4 +66,7 @@ interface HabitsApplicationComponent {
     val taskRunner: TaskRunner
     val widgetPreferences: WidgetPreferences
     val widgetUpdater: WidgetUpdater
+    val categoryRepository: CategoryRepository
+    val subcategoryRepository: SubcategoryRepository
+    val savedViewRepository: SavedViewRepository
 }

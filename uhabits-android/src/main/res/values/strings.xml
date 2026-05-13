@@ -24,6 +24,11 @@
 
     <string name="app_name" >Loop Habit Tracker</string>
     <string name="main_activity_title">Habits</string>
+    <string name="nav_drawer_open">Open navigation drawer</string>
+    <string name="nav_drawer_close">Close navigation drawer</string>
+    <string name="nav_drawer_categories">Categories</string>
+    <string name="nav_drawer_saved_views">Saved views</string>
+    <string name="nav_drawer_uncategorised">Uncategorised</string>
     <string name="action_settings">Settings</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
