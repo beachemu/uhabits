@@ -24,6 +24,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.preferences.Preferences
@@ -43,9 +44,12 @@ class ListHabitsMenu @Inject constructor(
 ) {
     val activity = (context as AppCompatActivity)
 
+    var onSeedDemoData: (() -> Unit)? = null
+
     fun onCreate(inflater: MenuInflater, menu: Menu) {
         menu.clear()
         inflater.inflate(R.menu.list_habits, menu)
+        menu.findItem(R.id.actionSeedDemoData).isVisible = BuildConfig.DEBUG
         val nightModeItem = menu.findItem(R.id.actionToggleNightMode)
         val hideArchivedItem = menu.findItem(R.id.actionHideArchived)
         val hideCompletedItem = menu.findItem(R.id.actionHideCompleted)
@@ -143,6 +147,11 @@ class ListHabitsMenu @Inject constructor(
 
             R.id.actionSortStatus -> {
                 behavior.onSortByStatus()
+                return true
+            }
+
+            R.id.actionSeedDemoData -> {
+                onSeedDemoData?.invoke()
                 return true
             }
 

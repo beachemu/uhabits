@@ -39,6 +39,11 @@ import org.isoron.uhabits.BaseExceptionHandler
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
+import org.isoron.uhabits.activities.habits.list.views.UNCATEGORISED_ID
+import org.isoron.uhabits.core.models.Category
+import org.isoron.uhabits.core.models.Frequency
+import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.Subcategory
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
@@ -118,6 +123,64 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         )
         rootView.drawerLayout.addDrawerListener(drawerToggle)
         drawerToggle.syncState()
+
+        val filterState = appComponent.habitListFilterState
+        rootView.drawerView.onSelectionChanged = { selection ->
+            val includeUncategorised = UNCATEGORISED_ID in selection
+            val realIds = selection - UNCATEGORISED_ID
+            filterState.update(realIds, includeUncategorised)
+        }
+
+        menu.onSeedDemoData = { seedDemoData() }
+    }
+
+    private fun seedDemoData() {
+        val categoryRepo = appComponent.categoryRepository
+        val subcategoryRepo = appComponent.subcategoryRepository
+        val habitList = appComponent.habitList
+        val modelFactory = appComponent.modelFactory
+
+        if (categoryRepo.findAll().isNotEmpty()) {
+            Log.i("ListHabitsActivity", "Demo data already seeded; skipping")
+            return
+        }
+
+        val health = Category(name = "Health", color = PaletteColor(2), position = 0)
+        val work = Category(name = "Work", color = PaletteColor(8), position = 1)
+        categoryRepo.save(health)
+        categoryRepo.save(work)
+
+        val fitness = Subcategory(categoryId = health.id!!, name = "Fitness", color = PaletteColor(2), position = 0)
+        val nutrition = Subcategory(categoryId = health.id!!, name = "Nutrition", color = PaletteColor(4), position = 1)
+        val deepWork = Subcategory(categoryId = work.id!!, name = "Deep work", color = PaletteColor(8), position = 0)
+        subcategoryRepo.save(fitness)
+        subcategoryRepo.save(nutrition)
+        subcategoryRepo.save(deepWork)
+
+        val seedHabits = listOf(
+            Triple("Run", PaletteColor(2), fitness.id),
+            Triple("Stretch", PaletteColor(2), fitness.id),
+            Triple("Eat vegetables", PaletteColor(4), nutrition.id),
+            Triple("Drink water", PaletteColor(4), nutrition.id),
+            Triple("Write deeply for 1h", PaletteColor(8), deepWork.id),
+            Triple("Inbox zero", PaletteColor(8), deepWork.id),
+            Triple("Read a book", PaletteColor(11), null),
+            Triple("Call a friend", PaletteColor(11), null)
+        )
+        for ((index, spec) in seedHabits.withIndex()) {
+            val (name, color, subId) = spec
+            val habit = modelFactory.buildHabit()
+            habit.name = name
+            habit.color = color
+            habit.frequency = Frequency.DAILY
+            habit.position = index
+            habit.subcategoryId = subId
+            habitList.add(habit)
+            habit.recompute()
+        }
+
+        rootView.drawerView.reload()
+        adapter.refresh()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {

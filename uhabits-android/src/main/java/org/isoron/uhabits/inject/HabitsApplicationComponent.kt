@@ -35,6 +35,7 @@ import org.isoron.uhabits.core.reminders.ReminderScheduler
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.NotificationTray
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardListCache
+import org.isoron.uhabits.core.ui.screens.habits.list.HabitListFilterState
 import org.isoron.uhabits.core.utils.MidnightTimer
 import org.isoron.uhabits.intents.IntentFactory
 import org.isoron.uhabits.intents.IntentParser
@@ -69,4 +70,5 @@ interface HabitsApplicationComponent {
     val categoryRepository: CategoryRepository
     val subcategoryRepository: SubcategoryRepository
     val savedViewRepository: SavedViewRepository
+    val habitListFilterState: HabitListFilterState
 }

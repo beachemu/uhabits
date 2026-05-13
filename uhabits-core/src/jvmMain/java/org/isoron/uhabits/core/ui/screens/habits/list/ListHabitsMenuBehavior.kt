@@ -28,10 +28,17 @@ class ListHabitsMenuBehavior @Inject constructor(
     private val screen: Screen,
     private val adapter: Adapter,
     private val preferences: Preferences,
-    private val themeSwitcher: ThemeSwitcher
+    private val themeSwitcher: ThemeSwitcher,
+    private val filterState: HabitListFilterState
 ) {
     private var showCompleted: Boolean
     private var showArchived: Boolean
+
+    private val filterListener = object : HabitListFilterState.Listener {
+        override fun onFilterChanged() {
+            updateAdapterFilter()
+        }
+    }
 
     fun onCreateHabit() {
         screen.showSelectHabitTypeDialog()
@@ -102,18 +109,25 @@ class ListHabitsMenuBehavior @Inject constructor(
     }
 
     private fun updateAdapterFilter() {
+        val selectedIds: Set<Long>? =
+            if (filterState.isEmpty) null else filterState.selectedSubcategoryIds
+        val includeUncategorised = filterState.includeUncategorised
         if (preferences.areQuestionMarksEnabled) {
             adapter.setFilter(
                 HabitMatcher(
                     isArchivedAllowed = showArchived,
-                    isEnteredAllowed = showCompleted
+                    isEnteredAllowed = showCompleted,
+                    selectedSubcategoryIds = selectedIds,
+                    includeUncategorised = includeUncategorised
                 )
             )
         } else {
             adapter.setFilter(
                 HabitMatcher(
                     isArchivedAllowed = showArchived,
-                    isCompletedAllowed = showCompleted
+                    isCompletedAllowed = showCompleted,
+                    selectedSubcategoryIds = selectedIds,
+                    includeUncategorised = includeUncategorised
                 )
             )
         }
@@ -138,6 +152,7 @@ class ListHabitsMenuBehavior @Inject constructor(
     init {
         showCompleted = preferences.showCompleted
         showArchived = preferences.showArchived
+        filterState.addListener(filterListener)
         updateAdapterFilter()
     }
 }

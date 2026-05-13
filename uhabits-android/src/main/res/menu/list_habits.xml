@@ -100,4 +100,12 @@
         android:title="@string/about"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/actionSeedDemoData"
+        android:orderInCategory="200"
+        android:title="Seed demo data (debug)"
+        android:visible="false"
+        app:showAsAction="never"
+        tools:ignore="HardcodedText"/>
+
 </menu>

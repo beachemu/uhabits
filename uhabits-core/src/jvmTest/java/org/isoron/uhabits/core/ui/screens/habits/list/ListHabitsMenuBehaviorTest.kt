@@ -49,6 +49,8 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
 
     private val themeSwitcher: ThemeSwitcher = mock()
 
+    private val filterState = HabitListFilterState()
+
     private val matcherCaptor: KArgumentCaptor<HabitMatcher> = argumentCaptor()
 
     private val orderCaptor: KArgumentCaptor<HabitList.Order> = argumentCaptor()
@@ -58,7 +60,7 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
     @Throws(Exception::class)
     override fun setUp() {
         super.setUp()
-        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher)
+        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher, filterState)
         clearInvocations(adapter)
     }
 
@@ -66,7 +68,7 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
     fun testInitialFilter() {
         whenever(prefs.showArchived).thenReturn(true)
         whenever(prefs.showCompleted).thenReturn(true)
-        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher)
+        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher, filterState)
         verify(adapter).setFilter(matcherCaptor.capture())
         verify(adapter).refresh()
         verifyNoMoreInteractions(adapter)
@@ -75,7 +77,7 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
         assertTrue(matcherCaptor.lastValue.isCompletedAllowed)
         whenever(prefs.showArchived).thenReturn(false)
         whenever(prefs.showCompleted).thenReturn(false)
-        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher)
+        behavior = ListHabitsMenuBehavior(screen, adapter, prefs, themeSwitcher, filterState)
         verify(adapter).setFilter(matcherCaptor.capture())
         verify(adapter).refresh()
         verifyNoMoreInteractions(adapter)
