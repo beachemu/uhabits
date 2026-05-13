@@ -22,5 +22,5 @@ data class Category(
     var id: Long? = null,
     var name: String = "",
     var color: PaletteColor = PaletteColor(8),
-    var position: Int = 0,
+    var position: Int = 0
 )

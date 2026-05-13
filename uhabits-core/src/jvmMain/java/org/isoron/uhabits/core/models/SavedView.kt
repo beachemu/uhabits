@@ -18,10 +18,16 @@
  */
 package org.isoron.uhabits.core.models
 
-data class Subcategory(
+data class SavedView(
     var id: Long? = null,
-    var categoryId: Long,
     var name: String = "",
-    var color: PaletteColor = PaletteColor(8),
+    var selectedSubcategoryIds: Set<Long> = emptySet(),
+    var includeUncategorised: Boolean = false,
+    var sortField: SavedViewSortField = SavedViewSortField.NAME,
+    var sortDirection: SavedViewSortDirection = SavedViewSortDirection.ASC,
     var position: Int = 0
 )
+
+enum class SavedViewSortField { NAME, SCORE, STREAK, COLOR, CATEGORY }
+
+enum class SavedViewSortDirection { ASC, DESC }
