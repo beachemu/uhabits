@@ -21,26 +21,26 @@ package org.isoron.uhabits.activities.habits.list.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.compose.LocalUhabitsColors
 import org.isoron.uhabits.core.models.Category
-import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.models.SavedView
 import org.isoron.uhabits.core.models.Subcategory
 import org.isoron.uhabits.core.models.sqlite.CategoryRepository
@@ -67,6 +66,7 @@ fun NavigationDrawerContent(
     reloadVersion: Int,
     selectedSubcategoryIds: Set<Long>,
     onSubcategoryCheckedChange: (Long, Boolean) -> Unit,
+    onCategoryToggle: (List<Long>, Boolean) -> Unit,
     onSavedViewTapped: (SavedView) -> Unit
 ) {
     val colors = LocalUhabitsColors.current
@@ -81,15 +81,28 @@ fun NavigationDrawerContent(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.cardBackground)
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
         SectionHeader(text = stringResource(R.string.nav_drawer_categories))
         for (category in categories) {
             val id = category.id ?: continue
             val isExpanded = expanded[id] == true
+            val subIds = subsByCategory[id].orEmpty().mapNotNull { it.id }
+            val checkedCount = subIds.count { it in selectedSubcategoryIds }
+            val triState = when {
+                subIds.isEmpty() -> null
+                checkedCount == 0 -> ToggleableState.Off
+                checkedCount == subIds.size -> ToggleableState.On
+                else -> ToggleableState.Indeterminate
+            }
             CategoryRow(
                 category = category,
                 expanded = isExpanded,
+                triState = triState,
+                onTriStateClick = {
+                    onCategoryToggle(subIds, triState != ToggleableState.On)
+                },
                 onToggle = { expanded[id] = !isExpanded }
             )
             if (isExpanded) {
@@ -133,6 +146,8 @@ private fun SectionHeader(text: String) {
 private fun CategoryRow(
     category: Category,
     expanded: Boolean,
+    triState: ToggleableState?,
+    onTriStateClick: () -> Unit,
     onToggle: () -> Unit
 ) {
     val colors = LocalUhabitsColors.current
@@ -141,23 +156,33 @@ private fun CategoryRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onToggle)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
     ) {
         Text(
             text = if (expanded) "▾" else "▸",
             color = colors.contrast60,
             modifier = Modifier.padding(end = 8.dp)
         )
-        ColorDot(category.color)
+        if (triState != null) {
+            val tint = Color(category.color.toFixedAndroidColor())
+            TriStateCheckbox(
+                state = triState,
+                onClick = onTriStateClick,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = tint,
+                    uncheckedColor = tint
+                )
+            )
+        }
         Text(
             text = category.name,
-            color = colors.contrast100,
+            color = Color(category.color.toFixedAndroidColor()),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .padding(start = 12.dp)
+                .padding(start = if (triState != null) 0.dp else 12.dp)
                 .weight(1f)
         )
     }
@@ -169,24 +194,28 @@ private fun SubcategoryRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    val colors = LocalUhabitsColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 40.dp, top = 6.dp, end = 16.dp, bottom = 6.dp)
+            .padding(start = 40.dp, top = 2.dp, end = 16.dp, bottom = 2.dp)
     ) {
-        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-        ColorDot(subcategory.color)
+        val tint = Color(subcategory.color.toFixedAndroidColor())
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = tint,
+                uncheckedColor = tint
+            )
+        )
         Text(
             text = subcategory.name,
-            color = colors.contrast100,
+            color = tint,
             fontSize = 14.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f)
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -232,15 +261,5 @@ private fun SavedViewRow(view: SavedView, onTap: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onTap)
             .padding(horizontal = 16.dp, vertical = 12.dp)
-    )
-}
-
-@Composable
-private fun ColorDot(color: PaletteColor) {
-    Box(
-        modifier = Modifier
-            .size(12.dp)
-            .clip(CircleShape)
-            .background(Color(color.toFixedAndroidColor()))
     )
 }

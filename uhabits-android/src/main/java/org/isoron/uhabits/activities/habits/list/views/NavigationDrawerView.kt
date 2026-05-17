@@ -70,6 +70,14 @@ class NavigationDrawerView @Inject constructor(
                     if (checked) selected[id] = true else selected.remove(id)
                     onSelectionChanged?.invoke(selectedSubcategoryIds)
                 },
+                onCategoryToggle = { ids, checked ->
+                    if (checked) {
+                        ids.forEach { selected[it] = true }
+                    } else {
+                        ids.forEach { selected.remove(it) }
+                    }
+                    onSelectionChanged?.invoke(selectedSubcategoryIds)
+                },
                 onSavedViewTapped = { view -> onSavedViewTapped?.invoke(view) }
             )
         }
