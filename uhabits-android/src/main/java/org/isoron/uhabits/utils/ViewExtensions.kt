@@ -50,6 +50,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.snackbar.Snackbar
 import org.isoron.platform.gui.toInt
+import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
@@ -119,7 +120,7 @@ fun Activity.showMessage(msg: String) {
 
 fun Activity.showSendFileScreen(archiveFilename: String) {
     val file = File(archiveFilename)
-    val fileUri = FileProvider.getUriForFile(this, "org.isoron.uhabits", file)
+    val fileUri = FileProvider.getUriForFile(this, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
     this.startActivitySafely(
         Intent().apply {
             action = Intent.ACTION_SEND
