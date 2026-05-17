@@ -56,6 +56,16 @@ open class Preferences(private val storage: Storage) {
         set(order) {
             storage.putString("pref_default_order", order.name)
         }
+    var lastSelectedSubcategoryIds: Set<Long>
+        get() = splitLongs(storage.getString("pref_last_selected_subcategory_ids", "")).toSet()
+        set(value) {
+            storage.putString("pref_last_selected_subcategory_ids", joinLongs(value.toLongArray()))
+        }
+    var lastIncludeUncategorised: Boolean
+        get() = storage.getBoolean("pref_last_include_uncategorised", false)
+        set(value) {
+            storage.putBoolean("pref_last_include_uncategorised", value)
+        }
     var defaultSecondaryOrder: HabitList.Order
         get() {
             val name = storage.getString("pref_default_secondary_order", "BY_NAME_ASC")

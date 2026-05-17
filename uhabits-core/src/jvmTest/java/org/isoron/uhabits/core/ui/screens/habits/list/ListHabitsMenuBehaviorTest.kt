@@ -49,7 +49,7 @@ class ListHabitsMenuBehaviorTest : BaseUnitTest() {
 
     private val themeSwitcher: ThemeSwitcher = mock()
 
-    private val filterState = HabitListFilterState()
+    private val filterState = HabitListFilterState(prefs)
 
     private val matcherCaptor: KArgumentCaptor<HabitMatcher> = argumentCaptor()
 

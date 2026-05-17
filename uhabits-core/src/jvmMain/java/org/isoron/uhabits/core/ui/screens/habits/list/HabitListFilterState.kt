@@ -19,13 +19,16 @@
 package org.isoron.uhabits.core.ui.screens.habits.list
 
 import org.isoron.uhabits.core.AppScope
+import org.isoron.uhabits.core.preferences.Preferences
 import javax.inject.Inject
 
 @AppScope
-class HabitListFilterState @Inject constructor() {
-    var selectedSubcategoryIds: Set<Long> = emptySet()
+class HabitListFilterState @Inject constructor(
+    private val preferences: Preferences
+) {
+    var selectedSubcategoryIds: Set<Long> = preferences.lastSelectedSubcategoryIds
         private set
-    var includeUncategorised: Boolean = false
+    var includeUncategorised: Boolean = preferences.lastIncludeUncategorised
         private set
 
     interface Listener {
@@ -38,6 +41,8 @@ class HabitListFilterState @Inject constructor() {
         if (ids == selectedSubcategoryIds && includeUncategorised == this.includeUncategorised) return
         selectedSubcategoryIds = ids.toSet()
         this.includeUncategorised = includeUncategorised
+        preferences.lastSelectedSubcategoryIds = selectedSubcategoryIds
+        preferences.lastIncludeUncategorised = includeUncategorised
         listeners.toList().forEach { it.onFilterChanged() }
     }
 
