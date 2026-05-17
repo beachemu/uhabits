@@ -18,7 +18,18 @@
  */
 package org.isoron.uhabits.core.commands
 
+import org.isoron.uhabits.core.models.ReorderableEntity
+import org.isoron.uhabits.core.models.sqlite.CategoryRepository
 import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
+
+data class ReorderCategoriesCommand(
+    val repository: CategoryRepository,
+    val orderedIds: List<Long>
+) : Command {
+    override fun run() {
+        reorder(repository.findAll(), orderedIds, repository::save)
+    }
+}
 
 data class ReorderSubcategoriesCommand(
     val repository: SubcategoryRepository,
@@ -26,13 +37,21 @@ data class ReorderSubcategoriesCommand(
     val orderedIds: List<Long>
 ) : Command {
     override fun run() {
-        val byId = repository.findByCategory(categoryId).associateBy { it.id }
-        orderedIds.forEachIndexed { index, id ->
-            val subcategory = byId[id] ?: return@forEachIndexed
-            if (subcategory.position != index) {
-                subcategory.position = index
-                repository.save(subcategory)
-            }
+        reorder(repository.findByCategory(categoryId), orderedIds, repository::save)
+    }
+}
+
+private fun <T : ReorderableEntity> reorder(
+    entities: List<T>,
+    orderedIds: List<Long>,
+    save: (T) -> Unit
+) {
+    val byId = entities.associateBy { it.id }
+    orderedIds.forEachIndexed { index, id ->
+        val entity = byId[id] ?: return@forEachIndexed
+        if (entity.position != index) {
+            entity.position = index
+            save(entity)
         }
     }
 }

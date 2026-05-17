@@ -49,6 +49,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -218,10 +220,17 @@ private fun CategoryRow(
             .clickable(onClick = onToggle)
             .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
     ) {
+        val expandLabel = stringResource(R.string.expand_category)
+        val collapseLabel = stringResource(R.string.collapse_category)
         Text(
             text = if (expanded) "▾" else "▸",
             color = colors.contrast60,
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .semantics {
+                    contentDescription =
+                        if (expanded) collapseLabel else expandLabel
+                }
         )
         if (triState != null) {
             val tint = Color(category.color.toFixedAndroidColor())
@@ -349,32 +358,34 @@ private fun SavedViewRow(
     onDelete: () -> Unit
 ) {
     val colors = LocalUhabitsColors.current
-    var menuExpanded by remember { mutableStateOf(false) }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = view.name,
-            color = colors.contrast100,
-            fontSize = 14.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .weight(1f)
-                .clickable(onClick = onTap)
-                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
-        )
-        Box {
+        val moreOptionsLabel = stringResource(R.string.more_options)
+        var menuExpanded by remember { mutableStateOf(false) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(
-                text = "⋮",
-                color = colors.contrast60,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                text = view.name,
+                color = colors.contrast100,
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .clickable { menuExpanded = true }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .weight(1f)
+                    .clickable(onClick = onTap)
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
             )
+            Box {
+                Text(
+                    text = "⋮",
+                    color = colors.contrast60,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .semantics { contentDescription = moreOptionsLabel }
+                        .clickable { menuExpanded = true }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false }

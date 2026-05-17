@@ -29,14 +29,14 @@ class SubcategoryRepository(private val db: Database) {
 
     fun find(id: Long): Subcategory? {
         val record = repository.find(id) ?: return null
-        val subcategory = Subcategory(categoryId = record.categoryId!!)
+        val subcategory = Subcategory()
         record.copyTo(subcategory)
         return subcategory
     }
 
     fun findAll(): List<Subcategory> {
         return repository.findAll("order by category_id, position").map { record ->
-            val subcategory = Subcategory(categoryId = record.categoryId!!)
+            val subcategory = Subcategory()
             record.copyTo(subcategory)
             subcategory
         }
@@ -47,7 +47,7 @@ class SubcategoryRepository(private val db: Database) {
             "where category_id=? order by position",
             categoryId.toString()
         ).map { record ->
-            val subcategory = Subcategory(categoryId = record.categoryId!!)
+            val subcategory = Subcategory()
             record.copyTo(subcategory)
             subcategory
         }

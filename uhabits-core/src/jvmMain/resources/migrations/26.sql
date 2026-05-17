@@ -7,7 +7,7 @@ create table categories (
 
 create table subcategories (
     id integer primary key autoincrement,
-    category_id integer,
+    category_id integer not null,
     name text,
     color integer,
     position integer

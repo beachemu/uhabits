@@ -16,22 +16,9 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.isoron.uhabits.core.commands
+package org.isoron.uhabits.core.models
 
-import org.isoron.uhabits.core.models.sqlite.CategoryRepository
-
-data class ReorderCategoriesCommand(
-    val repository: CategoryRepository,
-    val orderedIds: List<Long>
-) : Command {
-    override fun run() {
-        val byId = repository.findAll().associateBy { it.id }
-        orderedIds.forEachIndexed { index, id ->
-            val category = byId[id] ?: return@forEachIndexed
-            if (category.position != index) {
-                category.position = index
-                repository.save(category)
-            }
-        }
-    }
+internal interface ReorderableEntity {
+    val id: Long?
+    var position: Int
 }

@@ -50,8 +50,8 @@ class HabitListFilterState @Inject constructor(
         ) {
             return
         }
-        selectedSubcategoryIds = subcategoryIds.toSet()
-        selectedCategoryIds = categoryIds.toSet()
+        selectedSubcategoryIds = subcategoryIds
+        selectedCategoryIds = categoryIds
         this.includeUncategorised = includeUncategorised
         preferences.lastSelectedSubcategoryIds = selectedSubcategoryIds
         preferences.lastSelectedCategoryIds = selectedCategoryIds

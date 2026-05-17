@@ -19,6 +19,7 @@
 
 package org.isoron.uhabits.activities.categories
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +56,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -77,6 +80,7 @@ import org.isoron.uhabits.core.models.sqlite.CategoryRepository
 import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
 import org.isoron.uhabits.utils.toFixedAndroidColor
 
+private const val TAG = "ManageCategories"
 private const val PALETTE_SIZE = 20
 
 private sealed class EditorTarget {
@@ -156,7 +160,12 @@ fun ManageCategoriesScreen(
                         }
                     },
                     onAddSubcategory = {
-                        editorTarget = EditorTarget.NewSubcategory(category.id ?: return@CategoryCard)
+                        val id = category.id
+                        if (id != null) {
+                            editorTarget = EditorTarget.NewSubcategory(id)
+                        } else {
+                            Log.w(TAG, "Unexpected null category ID in onAddSubcategory")
+                        }
                     },
                     onEditSubcategory = { sub ->
                         editorTarget = EditorTarget.EditSubcategory(sub)
@@ -165,7 +174,12 @@ fun ManageCategoriesScreen(
                         deleteTarget = DeleteTarget.Sub(sub)
                     },
                     onMoveSubcategoryUp = { sub ->
-                        val subs = subsByCategory[category.id].orEmpty()
+                        val catId = category.id
+                        if (catId == null) {
+                            Log.w(TAG, "Unexpected null category ID in onMoveSubcategoryUp")
+                            return@CategoryCard
+                        }
+                        val subs = subsByCategory[catId].orEmpty()
                         val ids = subs.mapNotNull { it.id }.toMutableList()
                         val i = ids.indexOf(sub.id)
                         if (i > 0) {
@@ -175,7 +189,7 @@ fun ManageCategoriesScreen(
                             commandRunner.run(
                                 ReorderSubcategoriesCommand(
                                     subcategoryRepository,
-                                    category.id ?: return@CategoryCard,
+                                    catId,
                                     ids
                                 )
                             )
@@ -183,7 +197,12 @@ fun ManageCategoriesScreen(
                         }
                     },
                     onMoveSubcategoryDown = { sub ->
-                        val subs = subsByCategory[category.id].orEmpty()
+                        val catId = category.id
+                        if (catId == null) {
+                            Log.w(TAG, "Unexpected null category ID in onMoveSubcategoryDown")
+                            return@CategoryCard
+                        }
+                        val subs = subsByCategory[catId].orEmpty()
                         val ids = subs.mapNotNull { it.id }.toMutableList()
                         val i = ids.indexOf(sub.id)
                         if (i in 0 until ids.size - 1) {
@@ -193,7 +212,7 @@ fun ManageCategoriesScreen(
                             commandRunner.run(
                                 ReorderSubcategoriesCommand(
                                     subcategoryRepository,
-                                    category.id ?: return@CategoryCard,
+                                    catId,
                                     ids
                                 )
                             )
@@ -257,6 +276,8 @@ fun ManageCategoriesScreen(
                             commandRunner.run(
                                 EditCategoryCommand(categoryRepository, id, name, color)
                             )
+                        } else {
+                            Log.w(TAG, "Unexpected null ID in EditCategory confirm")
                         }
                     }
                     is EditorTarget.NewSubcategory -> commandRunner.run(
@@ -271,6 +292,8 @@ fun ManageCategoriesScreen(
                             commandRunner.run(
                                 EditSubcategoryCommand(subcategoryRepository, id, name, color)
                             )
+                        } else {
+                            Log.w(TAG, "Unexpected null ID in EditSubcategory confirm")
                         }
                     }
                 }
@@ -418,6 +441,7 @@ private fun EntryRow(
     onDelete: () -> Unit
 ) {
     val colors = LocalUhabitsColors.current
+    val moreOptionsLabel = stringResource(R.string.more_options)
     var menuExpanded by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -460,6 +484,7 @@ private fun EntryRow(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
+                    .semantics { contentDescription = moreOptionsLabel }
                     .clickable { menuExpanded = true }
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
@@ -486,7 +511,6 @@ private fun EntryRow(
     }
 }
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun IconText(
     symbol: String,
@@ -500,6 +524,7 @@ private fun IconText(
         color = if (enabled) colors.contrast100 else colors.contrast60.copy(alpha = 0.3f),
         fontSize = 14.sp,
         modifier = Modifier
+            .semantics { this.contentDescription = contentDescription }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 4.dp)
     )

@@ -83,11 +83,13 @@ class SubcategoryRepositoryTest : BaseUnitTest() {
     fun testRemove_nullsOutHabitSubcategoryId() {
         val sub = Subcategory(categoryId = 1L, name = "X", position = 0)
         repo.save(sub)
+        val subId = sub.id!!
         db.execute("insert into habits (id, subcategory_id) values (?, ?)", 200L, sub.id!!)
 
         repo.remove(sub)
 
         assertNull(sub.id)
+        assertNull(repo.find(subId))
         db.query("select subcategory_id from habits where id=?", "200").use { c ->
             c.moveToNext()
             assertNull(c.getLong(0))

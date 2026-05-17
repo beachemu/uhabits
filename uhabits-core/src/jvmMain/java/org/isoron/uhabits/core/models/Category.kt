@@ -19,8 +19,8 @@
 package org.isoron.uhabits.core.models
 
 data class Category(
-    var id: Long? = null,
+    override var id: Long? = null,
     var name: String = "",
     var color: PaletteColor = PaletteColor(8),
-    var position: Int = 0
-)
+    override var position: Int = 0
+) : ReorderableEntity

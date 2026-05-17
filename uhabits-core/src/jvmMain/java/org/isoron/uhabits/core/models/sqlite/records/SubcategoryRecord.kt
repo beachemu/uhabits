@@ -29,7 +29,7 @@ class SubcategoryRecord {
     var id: Long? = null
 
     @field:Column(name = "category_id")
-    var categoryId: Long? = null
+    var categoryId: Long = 0
 
     @field:Column
     var name: String? = null
@@ -50,7 +50,7 @@ class SubcategoryRecord {
 
     fun copyTo(model: Subcategory) {
         model.id = id
-        model.categoryId = categoryId!!
+        model.categoryId = categoryId
         model.name = name!!
         model.color = PaletteColor(color!!)
         model.position = position!!

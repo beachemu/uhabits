@@ -78,10 +78,11 @@ class CategoryRepositoryTest : BaseUnitTest() {
         subRepo.save(sub)
         db.execute("insert into habits (id, subcategory_id) values (?, ?)", 100L, sub.id!!)
 
+        val categoryId = category.id!!
         repo.remove(category)
 
         assertNull(category.id)
-        assertNull(repo.find(1L))
+        assertNull(repo.find(categoryId))
         assertThat(subRepo.findAll().size, equalTo(0))
         db.query(
             "select subcategory_id from habits where id=?",
