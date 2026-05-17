@@ -83,6 +83,7 @@ class ListHabitsMenu @Inject constructor(
             HabitList.Order.BY_STATUS_ASC -> sortStatus.icon = arrowDown
             HabitList.Order.BY_STATUS_DESC -> sortStatus.icon = arrowUp
             HabitList.Order.BY_POSITION -> sortManual.icon = arrowUp
+            HabitList.Order.BY_POSITION_DESC -> sortManual.icon = arrowDown
         }
     }
 

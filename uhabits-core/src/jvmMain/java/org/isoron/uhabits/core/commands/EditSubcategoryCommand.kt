@@ -20,6 +20,7 @@ package org.isoron.uhabits.core.commands
 
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.models.Subcategory
+import org.isoron.uhabits.core.models.SubcategoryNotFoundException
 import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
 
 data class EditSubcategoryCommand(
@@ -29,7 +30,7 @@ data class EditSubcategoryCommand(
     val color: PaletteColor
 ) : Command {
     override fun run() {
-        val existing = repository.find(subcategoryId) ?: return
+        val existing = repository.find(subcategoryId) ?: throw SubcategoryNotFoundException()
         val updated = Subcategory(
             id = existing.id,
             categoryId = existing.categoryId,

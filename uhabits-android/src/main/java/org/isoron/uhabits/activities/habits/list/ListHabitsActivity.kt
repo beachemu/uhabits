@@ -425,6 +425,11 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         setIntent(intent)
     }
 
+    override fun onDestroy() {
+        menu.behavior.destroy()
+        super.onDestroy()
+    }
+
     companion object {
         const val ACTION_EDIT = "org.isoron.uhabits.ACTION_EDIT"
     }

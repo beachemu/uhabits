@@ -19,6 +19,7 @@
 package org.isoron.uhabits.core.commands
 
 import org.isoron.uhabits.core.models.Category
+import org.isoron.uhabits.core.models.CategoryNotFoundException
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.models.sqlite.CategoryRepository
 
@@ -29,7 +30,7 @@ data class EditCategoryCommand(
     val color: PaletteColor
 ) : Command {
     override fun run() {
-        val existing = repository.find(categoryId) ?: return
+        val existing = repository.find(categoryId) ?: throw CategoryNotFoundException()
         val updated = Category(
             id = existing.id,
             name = name,

@@ -53,6 +53,12 @@ class CategoryRepository(private val db: Database) {
         val id = category.id ?: return
         repository.executeAsTransaction {
             db.execute(
+                "delete from saved_view_subcategories where subcategory_id in " +
+                    "(select id from subcategories where category_id=?)",
+                id
+            )
+            db.execute("delete from saved_view_categories where category_id=?", id)
+            db.execute(
                 "update habits set subcategory_id=null " +
                     "where subcategory_id in (select id from subcategories where category_id=?)",
                 id

@@ -154,6 +154,10 @@ class ListHabitsMenuBehavior @Inject constructor(
         fun showSelectHabitTypeDialog()
     }
 
+    fun destroy() {
+        filterState.removeListener(filterListener)
+    }
+
     init {
         showCompleted = preferences.showCompleted
         showArchived = preferences.showArchived

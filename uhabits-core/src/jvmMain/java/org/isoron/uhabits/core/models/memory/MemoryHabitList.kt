@@ -137,6 +137,8 @@ class MemoryHabitList : HabitList {
             Comparator { h1: Habit, h2: Habit -> scoreComparatorDesc.compare(h2, h1) }
         val positionComparator =
             Comparator<Habit> { habit1, habit2 -> habit1.position.compareTo(habit2.position) }
+        val positionComparatorDesc =
+            Comparator { h1: Habit, h2: Habit -> positionComparator.compare(h2, h1) }
         val statusComparatorDesc = Comparator { h1: Habit, h2: Habit ->
             if (h1.isCompletedToday() != h2.isCompletedToday()) {
                 return@Comparator if (h1.isCompletedToday()) -1 else 1
@@ -153,6 +155,7 @@ class MemoryHabitList : HabitList {
             Comparator { h1: Habit, h2: Habit -> statusComparatorDesc.compare(h2, h1) }
         return when {
             order === Order.BY_POSITION -> positionComparator
+            order === Order.BY_POSITION_DESC -> positionComparatorDesc
             order === Order.BY_NAME_ASC -> nameComparatorAsc
             order === Order.BY_NAME_DESC -> nameComparatorDesc
             order === Order.BY_COLOR_ASC -> colorComparatorAsc
@@ -185,7 +188,9 @@ class MemoryHabitList : HabitList {
     @Synchronized
     override fun reorder(from: Habit, to: Habit) {
         throwIfHasParent()
-        check(!(primaryOrder !== Order.BY_POSITION)) { "cannot reorder automatically sorted list" }
+        check(primaryOrder === Order.BY_POSITION || primaryOrder === Order.BY_POSITION_DESC) {
+            "cannot reorder automatically sorted list"
+        }
         require(indexOf(from) >= 0) { "list does not contain (from) habit" }
         val toPos = indexOf(to)
         require(toPos >= 0) { "list does not contain (to) habit" }

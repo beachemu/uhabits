@@ -106,7 +106,8 @@ class HabitCardListAdapter @Inject constructor(
     val isSelectionEmpty: Boolean
         get() = selected.isEmpty()
     val isSortable: Boolean
-        get() = cache.primaryOrder == HabitList.Order.BY_POSITION
+        get() = cache.primaryOrder == HabitList.Order.BY_POSITION ||
+            cache.primaryOrder == HabitList.Order.BY_POSITION_DESC
 
     /**
      * Notify the adapter that it has been attached to a ListView.

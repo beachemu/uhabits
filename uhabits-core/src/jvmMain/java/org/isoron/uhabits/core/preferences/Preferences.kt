@@ -78,7 +78,7 @@ open class Preferences(private val storage: Storage) {
                 HabitList.Order.valueOf(name)
             } catch (e: IllegalArgumentException) {
                 defaultSecondaryOrder = HabitList.Order.BY_NAME_ASC
-                HabitList.Order.BY_POSITION
+                HabitList.Order.BY_NAME_ASC
             }
         }
         set(order) {

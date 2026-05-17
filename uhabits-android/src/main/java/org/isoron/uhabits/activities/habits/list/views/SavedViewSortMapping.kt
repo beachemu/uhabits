@@ -37,7 +37,8 @@ fun savedViewSortToOrder(
             if (asc) HabitList.Order.BY_COLOR_ASC else HabitList.Order.BY_COLOR_DESC
         SavedViewSortField.STREAK ->
             if (asc) HabitList.Order.BY_STATUS_ASC else HabitList.Order.BY_STATUS_DESC
-        SavedViewSortField.CATEGORY -> HabitList.Order.BY_POSITION
+        SavedViewSortField.CATEGORY ->
+            if (asc) HabitList.Order.BY_POSITION else HabitList.Order.BY_POSITION_DESC
     }
 }
 
@@ -52,4 +53,5 @@ fun orderToSavedViewSort(order: HabitList.Order): Pair<SavedViewSortField, Saved
         HabitList.Order.BY_STATUS_ASC -> SavedViewSortField.STREAK to SavedViewSortDirection.ASC
         HabitList.Order.BY_STATUS_DESC -> SavedViewSortField.STREAK to SavedViewSortDirection.DESC
         HabitList.Order.BY_POSITION -> SavedViewSortField.CATEGORY to SavedViewSortDirection.ASC
+        HabitList.Order.BY_POSITION_DESC -> SavedViewSortField.CATEGORY to SavedViewSortDirection.DESC
     }

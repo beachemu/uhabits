@@ -16,25 +16,6 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.isoron.uhabits.core.commands
+package org.isoron.uhabits.core.models
 
-import org.isoron.uhabits.core.models.Habit
-import org.isoron.uhabits.core.models.HabitList
-
-data class AssignCategoryToHabitsCommand(
-    val habitList: HabitList,
-    val selected: List<Habit>,
-    val newCategoryId: Long?,
-    val newSubcategoryId: Long?
-) : Command {
-    override fun run() {
-        require(newSubcategoryId == null || newCategoryId != null) {
-            "Cannot assign a subcategory without a category"
-        }
-        for (h in selected) {
-            h.categoryId = newCategoryId
-            h.subcategoryId = newSubcategoryId
-        }
-        habitList.update(selected)
-    }
-}
+class SubcategoryNotFoundException : RuntimeException()

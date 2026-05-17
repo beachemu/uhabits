@@ -64,6 +64,7 @@ class SubcategoryRepository(private val db: Database) {
         val id = subcategory.id ?: return
         repository.executeAsTransaction {
             db.execute("update habits set subcategory_id=null where subcategory_id=?", id)
+            db.execute("delete from saved_view_subcategories where subcategory_id=?", id)
             db.execute("delete from subcategories where id=?", id)
             subcategory.id = null
         }
