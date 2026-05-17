@@ -109,6 +109,14 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 startActivity(intent)
                 return true
             }
+            "manageCategories" -> {
+                val intent = Intent(
+                    requireContext(),
+                    org.isoron.uhabits.activities.categories.ManageCategoriesActivity::class.java
+                )
+                startActivity(intent)
+                return true
+            }
             "rateApp" -> {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.playStoreURL)))
                 activity?.startActivitySafely(intent)

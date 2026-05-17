@@ -91,6 +91,18 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+            android:key="categoriesCategory"
+            android:title="@string/nav_drawer_categories">
+
+        <Preference
+                android:key="manageCategories"
+                android:summary="@string/pref_manage_categories_summary"
+                android:title="@string/pref_manage_categories_title"
+                app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:key="reminderCategory"
             android:title="@string/reminder">
 

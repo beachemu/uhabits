@@ -142,6 +142,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         rootView.drawerView.onSaveCurrentView = { showSaveCurrentViewDialog() }
         rootView.drawerView.onOverwriteSavedView = { view -> overwriteSavedView(view) }
         rootView.drawerView.onDeleteSavedView = { view -> showDeleteSavedViewDialog(view) }
+        rootView.drawerView.onManageCategoriesTapped = { openManageCategories() }
 
         menu.onSeedDemoData = { seedDemoData() }
     }
@@ -243,6 +244,12 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             rootView.drawerView.reload()
             Log.i("ListHabitsActivity", "Saved view '$name' at position $position")
         }
+    }
+
+    private fun openManageCategories() {
+        startActivity(
+            Intent(this, org.isoron.uhabits.activities.categories.ManageCategoriesActivity::class.java)
+        )
     }
 
     private fun seedDemoData() {

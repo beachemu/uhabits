@@ -85,6 +85,8 @@ class EditHabitActivity : AppCompatActivity() {
     var reminderMin = -1
     var reminderDays: WeekdayList = WeekdayList.EVERY_DAY
     var targetType = NumericalHabitType.AT_LEAST
+    var categoryId: Long? = null
+    var subcategoryId: Long? = null
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -117,6 +119,8 @@ class EditHabitActivity : AppCompatActivity() {
             binding.notesInput.setText(habit.description)
             binding.unitInput.setText(habit.unit)
             binding.targetInput.setText(habit.targetValue.toString())
+            subcategoryId = habit.subcategoryId
+            categoryId = subcategoryId?.let { component.subcategoryRepository.find(it)?.categoryId }
         } else {
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
@@ -130,6 +134,8 @@ class EditHabitActivity : AppCompatActivity() {
             reminderHour = state.getInt("reminderHour")
             reminderMin = state.getInt("reminderMin")
             reminderDays = WeekdayList(state.getInt("reminderDays"))
+            categoryId = state.getLong("categoryId", -1L).takeIf { it >= 0 }
+            subcategoryId = state.getLong("subcategoryId", -1L).takeIf { it >= 0 }
         }
 
         updateColors()
@@ -249,6 +255,10 @@ class EditHabitActivity : AppCompatActivity() {
             dialog.dismissCurrentAndShow(supportFragmentManager, "dayPicker")
         }
 
+        populateCategory()
+        binding.categoryPicker.setOnClickListener { showCategoryPicker() }
+        binding.subcategoryPicker.setOnClickListener { showSubcategoryPicker() }
+
         binding.buttonSave.setOnClickListener {
             if (validate()) save()
         }
@@ -277,6 +287,8 @@ class EditHabitActivity : AppCompatActivity() {
         } else {
             habit.reminder = null
         }
+
+        habit.subcategoryId = subcategoryId
 
         habit.frequency = Frequency(freqNum, freqDen)
         if (habitType == HabitType.NUMERICAL) {
@@ -316,6 +328,61 @@ class EditHabitActivity : AppCompatActivity() {
             }
         }
         return isValid
+    }
+
+    private fun populateCategory() {
+        val component = (application as HabitsApplication).component
+        val category = categoryId?.let { component.categoryRepository.find(it) }
+        val subcategory = subcategoryId?.let { component.subcategoryRepository.find(it) }
+        binding.categoryPicker.text = category?.name ?: getString(R.string.uncategorised)
+        if (category == null) {
+            binding.subcategoryPicker.visibility = View.GONE
+            binding.categoryDivider.visibility = View.GONE
+        } else {
+            binding.subcategoryPicker.visibility = View.VISIBLE
+            binding.categoryDivider.visibility = View.VISIBLE
+            binding.subcategoryPicker.text = subcategory?.name ?: getString(R.string.none)
+        }
+    }
+
+    private fun showCategoryPicker() {
+        val component = (application as HabitsApplication).component
+        val categories = component.categoryRepository.findAll()
+        val labels = mutableListOf(getString(R.string.uncategorised))
+        labels.addAll(categories.map { it.name })
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(R.string.category)
+        builder.setItems(labels.toTypedArray()) { dialog, which ->
+            if (which == 0) {
+                categoryId = null
+                subcategoryId = null
+            } else {
+                val selected = categories[which - 1]
+                if (selected.id != categoryId) {
+                    subcategoryId = null
+                }
+                categoryId = selected.id
+            }
+            populateCategory()
+            dialog.dismiss()
+        }
+        builder.create().dismissCurrentAndShow()
+    }
+
+    private fun showSubcategoryPicker() {
+        val catId = categoryId ?: return
+        val component = (application as HabitsApplication).component
+        val subcategories = component.subcategoryRepository.findByCategory(catId)
+        val labels = mutableListOf(getString(R.string.none))
+        labels.addAll(subcategories.map { it.name })
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(R.string.subcategory)
+        builder.setItems(labels.toTypedArray()) { dialog, which ->
+            subcategoryId = if (which == 0) null else subcategories[which - 1].id
+            populateCategory()
+            dialog.dismiss()
+        }
+        builder.create().dismissCurrentAndShow()
     }
 
     private fun populateReminder() {
@@ -376,6 +443,8 @@ class EditHabitActivity : AppCompatActivity() {
             putInt("reminderHour", reminderHour)
             putInt("reminderMin", reminderMin)
             putInt("reminderDays", reminderDays.toInteger())
+            putLong("categoryId", categoryId ?: -1L)
+            putLong("subcategoryId", subcategoryId ?: -1L)
         }
     }
 }

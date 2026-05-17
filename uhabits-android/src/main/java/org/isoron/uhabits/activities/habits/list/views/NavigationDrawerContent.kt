@@ -76,7 +76,8 @@ fun NavigationDrawerContent(
     onSavedViewTapped: (SavedView) -> Unit,
     onSaveCurrentView: () -> Unit,
     onOverwriteSavedView: (SavedView) -> Unit,
-    onDeleteSavedView: (SavedView) -> Unit
+    onDeleteSavedView: (SavedView) -> Unit,
+    onManageCategoriesTapped: () -> Unit
 ) {
     val colors = LocalUhabitsColors.current
     val categories = remember(reloadVersion) { categoryRepository.findAll() }
@@ -129,6 +130,7 @@ fun NavigationDrawerContent(
             checked = UNCATEGORISED_ID in selectedSubcategoryIds,
             onCheckedChange = { onSubcategoryCheckedChange(UNCATEGORISED_ID, it) }
         )
+        ManageCategoriesRow(onTap = onManageCategoriesTapped)
 
         SectionHeader(text = stringResource(R.string.nav_drawer_saved_views))
         for (view in savedViews) {
@@ -141,6 +143,23 @@ fun NavigationDrawerContent(
         }
         SaveCurrentViewRow(onTap = onSaveCurrentView)
     }
+}
+
+@Composable
+private fun ManageCategoriesRow(onTap: () -> Unit) {
+    val colors = LocalUhabitsColors.current
+    Text(
+        text = stringResource(R.string.nav_drawer_manage_categories),
+        color = colors.contrast60,
+        fontSize = 14.sp,
+        fontStyle = FontStyle.Italic,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    )
 }
 
 @Composable

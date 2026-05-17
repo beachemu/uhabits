@@ -55,6 +55,7 @@ class NavigationDrawerView @Inject constructor(
     var onSaveCurrentView: (() -> Unit)? = null
     var onOverwriteSavedView: ((SavedView) -> Unit)? = null
     var onDeleteSavedView: ((SavedView) -> Unit)? = null
+    var onManageCategoriesTapped: (() -> Unit)? = null
 
     fun reload() {
         reloadVersion++
@@ -90,7 +91,8 @@ class NavigationDrawerView @Inject constructor(
                 onSavedViewTapped = { view -> onSavedViewTapped?.invoke(view) },
                 onSaveCurrentView = { onSaveCurrentView?.invoke() },
                 onOverwriteSavedView = { view -> onOverwriteSavedView?.invoke(view) },
-                onDeleteSavedView = { view -> onDeleteSavedView?.invoke(view) }
+                onDeleteSavedView = { view -> onDeleteSavedView?.invoke(view) },
+                onManageCategoriesTapped = { onManageCategoriesTapped?.invoke() }
             )
         }
     }

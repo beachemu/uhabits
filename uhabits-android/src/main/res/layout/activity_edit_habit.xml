@@ -251,6 +251,29 @@
             </FrameLayout>
 
 
+            <!-- Category / Subcategory -->
+            <FrameLayout style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:text="@string/category" />
+
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/categoryPicker"
+                        android:text="@string/uncategorised" />
+
+                    <View
+                        style="@style/FormDivider"
+                        android:id="@+id/categoryDivider" />
+
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/subcategoryPicker"
+                        android:text="@string/none" />
+                </LinearLayout>
+            </FrameLayout>
+
             <!-- Notes -->
             <FrameLayout style="@style/FormOuterBox">
                 <LinearLayout style="@style/FormInnerBox">
