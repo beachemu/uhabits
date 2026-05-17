@@ -20,6 +20,7 @@
 plugins {
     alias(libs.plugins.agp)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint.plugin)
 }
@@ -86,6 +87,7 @@ android {
 
     kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
     buildFeatures.viewBinding = true
+    buildFeatures.compose = true
     lint.abortOnError = false
 }
 
@@ -104,6 +106,13 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.appcompat)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.activity)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
     implementation(libs.drawerlayout)
     implementation(libs.legacy.preference.v14)
     implementation(libs.legacy.support.v4)
