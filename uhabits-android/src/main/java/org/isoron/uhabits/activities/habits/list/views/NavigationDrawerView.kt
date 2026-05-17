@@ -52,9 +52,16 @@ class NavigationDrawerView @Inject constructor(
 
     var onSelectionChanged: ((Set<Long>) -> Unit)? = null
     var onSavedViewTapped: ((SavedView) -> Unit)? = null
+    var onSaveCurrentView: (() -> Unit)? = null
 
     fun reload() {
         reloadVersion++
+    }
+
+    fun applySelection(ids: Set<Long>, includeUncategorised: Boolean) {
+        selected.clear()
+        ids.forEach { selected[it] = true }
+        if (includeUncategorised) selected[UNCATEGORISED_ID] = true
     }
 
     @Composable
@@ -78,7 +85,8 @@ class NavigationDrawerView @Inject constructor(
                     }
                     onSelectionChanged?.invoke(selectedSubcategoryIds)
                 },
-                onSavedViewTapped = { view -> onSavedViewTapped?.invoke(view) }
+                onSavedViewTapped = { view -> onSavedViewTapped?.invoke(view) },
+                onSaveCurrentView = { onSaveCurrentView?.invoke() }
             )
         }
     }

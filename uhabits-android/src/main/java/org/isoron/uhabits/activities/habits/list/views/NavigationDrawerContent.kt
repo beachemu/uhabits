@@ -67,7 +67,8 @@ fun NavigationDrawerContent(
     selectedSubcategoryIds: Set<Long>,
     onSubcategoryCheckedChange: (Long, Boolean) -> Unit,
     onCategoryToggle: (List<Long>, Boolean) -> Unit,
-    onSavedViewTapped: (SavedView) -> Unit
+    onSavedViewTapped: (SavedView) -> Unit,
+    onSaveCurrentView: () -> Unit
 ) {
     val colors = LocalUhabitsColors.current
     val categories = remember(reloadVersion) { categoryRepository.findAll() }
@@ -125,7 +126,25 @@ fun NavigationDrawerContent(
         for (view in savedViews) {
             SavedViewRow(view = view, onTap = { onSavedViewTapped(view) })
         }
+        SaveCurrentViewRow(onTap = onSaveCurrentView)
     }
+}
+
+@Composable
+private fun SaveCurrentViewRow(onTap: () -> Unit) {
+    val colors = LocalUhabitsColors.current
+    Text(
+        text = stringResource(R.string.nav_drawer_save_current_view),
+        color = colors.contrast60,
+        fontSize = 14.sp,
+        fontStyle = FontStyle.Italic,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    )
 }
 
 @Composable

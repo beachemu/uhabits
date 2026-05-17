@@ -22,7 +22,7 @@ Package root in both: `org.isoron.uhabits` (core under `…uhabits.core`).
 
 ### Categories, subcategories & saved views (data layer)
 
-Landed on the `categories` branch. The UI side is partially wired (navigation drawer renders these; filter application and edit-habit picker are still pending).
+Landed on the `categories` branch. The UI side is partially wired: the navigation drawer renders categories/subcategories/saved views, subcategory-checkbox filtering and the saved-view tap/save flow are all live; the "Manage categories" screen and edit-habit picker are still pending.
 
 - **Models** (`core/models/`):
   - `Category(id, name, color: PaletteColor, position)`.
@@ -32,7 +32,8 @@ Landed on the `categories` branch. The UI side is partially wired (navigation dr
 - **Records** (`models/sqlite/records/`): `CategoryRecord`, `SubcategoryRecord`, `SavedViewRecord`. The saved-view ↔ subcategory link is a normalised join table `saved_view_subcategories` (composite PK).
 - **Repositories** (`models/sqlite/`): `CategoryRepository`, `SubcategoryRepository`, `SavedViewRepository` — each constructed from a `Database`, wrapping the generic `Repository<T>`. `SubcategoryRepository.findByCategory(categoryId)` is provided. Removing a category nulls `habit.subcategoryId` for affected habits in the same transaction (cascade is enforced in code, not via SQLite FKs). `SavedViewRepository.save` is transactional: it updates the view row then deletes & re-inserts join rows. No observer/listener support — callers manage refresh.
 - **Filtering**: `HabitMatcher` has `selectedSubcategoryIds: Set<Long>?` and `includeUncategorised: Boolean`. `null` selectedSubcategoryIds means "no category filter". Currently applied through `HabitMatcher.matches(habit)`; integration into `SQLiteHabitList`'s SQL WHERE clause (so paging stays efficient) is still TODO.
-- **DI**: the three repositories are provided as `@AppScope` singletons in `inject/HabitsModule.kt` and exposed on `HabitsApplicationComponent`. No `Command` subclasses exist yet for categories/subcategories/saved-views, and no observable filter-state holder exists yet.
+- **Filter state holder**: `HabitListFilterState` (`core/ui/screens/habits/list/`) is an `@AppScope` observable that holds the current `selectedSubcategoryIds` + `includeUncategorised` flag and notifies listeners on change. `ListHabitsActivity` pushes the drawer's checkbox state into it (stripping `UNCATEGORISED_ID` and toggling the flag). `ListHabitsMenuBehavior` subscribes and rebuilds the adapter's `HabitMatcher` whenever the state changes — so the filter is live end-to-end.
+- **DI**: the three repositories are provided as `@AppScope` singletons in `inject/HabitsModule.kt` and exposed on `HabitsApplicationComponent`. No `Command` subclasses exist yet for categories/subcategories/saved-views.
 
 ## Android architecture
 
@@ -45,6 +46,7 @@ Landed on the `categories` branch. The UI side is partially wired (navigation dr
 ## Code style & conventions
 
 - New code is Kotlin. Pure data containers preferred for models; behaviour on the side via repositories/commands.
+- **New UI features should be built with Jetpack Compose.** Compose is enabled in `uhabits-android` (Compose BOM + Compose Compiler plugin); existing screens are still programmatic Kotlin views and will be migrated incrementally. Host Composables inside `AbstractComposeView` when they need to plug into the existing view hierarchy, and wrap content in `UhabitsTheme` (`activities/common/compose/UhabitsTheme.kt`) so the existing XML theme attrs apply.
 - ktlint default style, enforced by CI (`./gradlew ktlintCheck`). Format with `./gradlew ktlintFormat` before committing.
 - Run tests with `./gradlew test` (core JVM tests are fast; Android tests are slower). See `docs/TEST.md`.
 - GPL-3.0 header on every new source file (copy from any existing file; update year/author as appropriate).
@@ -52,16 +54,14 @@ Landed on the `categories` branch. The UI side is partially wired (navigation dr
 
 ## Planned work — categories, subcategories, saved views (UI)
 
-Active feature on this branch. The data layer (see "Categories, subcategories & saved views (data layer)" above) and a navigation drawer that renders categories/subcategories/saved views have landed. The remaining UI scope:
+Active feature on this branch. The data layer, the filter holder, the navigation drawer (categories/subcategories/saved views), subcategory-checkbox filtering, the saved-view tap, and the "Save current view" dialog have all landed. The remaining UI scope:
 
-- **Filter wiring** — the drawer currently keeps checkbox state locally (`NavigationDrawerView.selectedSubcategoryIds`) and exposes `onSelectionChanged` / `onSavedViewTapped` callbacks that are no-ops. Still needed: an observable filter-state holder (selected subcategory ids + uncategorised flag) injected via Dagger; the habit list view subscribes and re-queries when the set changes (either by extending `HabitMatcher` usage in `SQLiteHabitList` or via a `FilteredHabitList` decorator).
-- **Saved-view tap** — applies the view's filter + sort in one go; needs the filter holder above.
-- **"Save current view"** — drawer entry/dialog that snapshots checkbox state + sort, prompts for a name, persists via `SavedViewRepository`.
 - **"Manage categories" screen** — list with create/rename/reorder/delete for categories and their subcategories. Reorder uses `position`. Reachable from the drawer and/or settings.
 - **Edit-habit picker** — cascading category → subcategory picker in `activities/habits/edit/` (both clearable for uncategorised).
 - **Sort selector** — toolbar control over fields {name, score, streak, color, category}, with default unchanged.
 - **CSV / SQLite export** — `HabitsCSVExporter` and the DB export need new columns/joins so exports include category and subcategory names.
-- **Uncategorised semantics** — uncategorised habits (null `subcategoryId`) appear when nothing is filtered. When any filter is active, uncategorised habits are hidden unless the "Uncategorised" pseudo-row is checked. The drawer represents this with sentinel id `-1L` (`UNCATEGORISED_ID` in `NavigationDrawerView.kt`) — the eventual filter holder should mirror that.
+- **Uncategorised semantics** — uncategorised habits (null `subcategoryId`) appear when nothing is filtered. When any filter is active, uncategorised habits are hidden unless the "Uncategorised" pseudo-row is checked. The drawer represents this with sentinel id `-1L` (`UNCATEGORISED_ID` in `NavigationDrawerContent.kt`); `HabitListFilterState.includeUncategorised` mirrors it.
+- **Saved-view sort mapping** — `SavedViewSortField` has `STREAK` and `CATEGORY` which don't have native `HabitList.Order` equivalents yet. `SavedViewSortMapping.kt` (in `activities/habits/list/views/`) currently maps `STREAK` to `BY_STATUS_*` and `CATEGORY` to `BY_POSITION`. Once the sort selector adds streak/category-aware orders, this mapping should be updated.
 - **Commands** — no `Command` subclasses exist yet for category/subcategory/saved-view mutations. User-driven mutations from the manage-categories screen should go through `CommandRunner` (per the existing convention) rather than calling repositories directly.
 
 ## Things to be careful about

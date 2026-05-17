@@ -29,20 +29,28 @@ import android.util.Log
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.widget.addTextChangedListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.isoron.uhabits.BaseExceptionHandler
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
 import org.isoron.uhabits.activities.habits.list.views.UNCATEGORISED_ID
+import org.isoron.uhabits.activities.habits.list.views.orderToSavedViewSort
+import org.isoron.uhabits.activities.habits.list.views.savedViewSortToOrder
 import org.isoron.uhabits.core.models.Category
 import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.SavedView
 import org.isoron.uhabits.core.models.Subcategory
 import org.isoron.uhabits.core.models.Timestamp
 import org.isoron.uhabits.core.preferences.Preferences
@@ -130,8 +138,72 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             val realIds = selection - UNCATEGORISED_ID
             filterState.update(realIds, includeUncategorised)
         }
+        rootView.drawerView.onSavedViewTapped = { view -> applySavedView(view) }
+        rootView.drawerView.onSaveCurrentView = { showSaveCurrentViewDialog() }
 
         menu.onSeedDemoData = { seedDemoData() }
+    }
+
+    private fun applySavedView(view: SavedView) {
+        rootView.drawerView.applySelection(view.selectedSubcategoryIds, view.includeUncategorised)
+        appComponent.habitListFilterState.update(view.selectedSubcategoryIds, view.includeUncategorised)
+        adapter.primaryOrder = savedViewSortToOrder(view.sortField, view.sortDirection)
+        rootView.drawerLayout.closeDrawer(Gravity.START)
+    }
+
+    private fun showSaveCurrentViewDialog() {
+        val input = EditText(this).apply {
+            setHint(R.string.save_current_view_hint)
+            setSingleLine(true)
+        }
+        val container = android.widget.FrameLayout(this).apply {
+            val pad = (resources.displayMetrics.density * 16).toInt()
+            setPadding(pad, pad / 2, pad, 0)
+            addView(input)
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.save_current_view_title)
+            .setView(container)
+            .setPositiveButton(R.string.save) { _, _ ->
+                persistCurrentView(input.text.toString().trim())
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            val positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positive.isEnabled = false
+            input.addTextChangedListener { editable ->
+                positive.isEnabled = editable?.toString()?.trim()?.isNotEmpty() == true
+            }
+        }
+        dialog.show()
+    }
+
+    private fun persistCurrentView(name: String) {
+        if (name.isEmpty()) return
+        val rawSelection = rootView.drawerView.selectedSubcategoryIds
+        val includeUncategorised = UNCATEGORISED_ID in rawSelection
+        val ids = rawSelection - UNCATEGORISED_ID
+        val (field, direction) = orderToSavedViewSort(adapter.primaryOrder)
+        val repo = appComponent.savedViewRepository
+        scope.launch {
+            val position = withContext(Dispatchers.IO) {
+                val existing = repo.findAll()
+                val nextPosition = (existing.maxOfOrNull { it.position } ?: -1) + 1
+                val view = SavedView(
+                    name = name,
+                    selectedSubcategoryIds = ids,
+                    includeUncategorised = includeUncategorised,
+                    sortField = field,
+                    sortDirection = direction,
+                    position = nextPosition
+                )
+                repo.save(view)
+                nextPosition
+            }
+            rootView.drawerView.reload()
+            Log.i("ListHabitsActivity", "Saved view '$name' at position $position")
+        }
     }
 
     private fun seedDemoData() {
