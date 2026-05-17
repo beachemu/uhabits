@@ -21,6 +21,7 @@ package org.isoron.uhabits.activities.habits.list.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,11 +32,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -68,7 +74,9 @@ fun NavigationDrawerContent(
     onSubcategoryCheckedChange: (Long, Boolean) -> Unit,
     onCategoryToggle: (List<Long>, Boolean) -> Unit,
     onSavedViewTapped: (SavedView) -> Unit,
-    onSaveCurrentView: () -> Unit
+    onSaveCurrentView: () -> Unit,
+    onOverwriteSavedView: (SavedView) -> Unit,
+    onDeleteSavedView: (SavedView) -> Unit
 ) {
     val colors = LocalUhabitsColors.current
     val categories = remember(reloadVersion) { categoryRepository.findAll() }
@@ -124,7 +132,12 @@ fun NavigationDrawerContent(
 
         SectionHeader(text = stringResource(R.string.nav_drawer_saved_views))
         for (view in savedViews) {
-            SavedViewRow(view = view, onTap = { onSavedViewTapped(view) })
+            SavedViewRow(
+                view = view,
+                onTap = { onSavedViewTapped(view) },
+                onOverwrite = { onOverwriteSavedView(view) },
+                onDelete = { onDeleteSavedView(view) }
+            )
         }
         SaveCurrentViewRow(onTap = onSaveCurrentView)
     }
@@ -268,17 +281,58 @@ private fun UncategorisedRow(
 }
 
 @Composable
-private fun SavedViewRow(view: SavedView, onTap: () -> Unit) {
+private fun SavedViewRow(
+    view: SavedView,
+    onTap: () -> Unit,
+    onOverwrite: () -> Unit,
+    onDelete: () -> Unit
+) {
     val colors = LocalUhabitsColors.current
-    Text(
-        text = view.name,
-        color = colors.contrast100,
-        fontSize = 14.sp,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onTap)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    )
+    var menuExpanded by remember { mutableStateOf(false) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = view.name,
+            color = colors.contrast100,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onTap)
+                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp)
+        )
+        Box {
+            Text(
+                text = "⋮",
+                color = colors.contrast60,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clickable { menuExpanded = true }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.saved_view_overwrite)) },
+                    onClick = {
+                        menuExpanded = false
+                        onOverwrite()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.saved_view_delete)) },
+                    onClick = {
+                        menuExpanded = false
+                        onDelete()
+                    }
+                )
+            }
+        }
+    }
 }

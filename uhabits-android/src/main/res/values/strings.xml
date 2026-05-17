@@ -31,6 +31,10 @@
     <string name="nav_drawer_save_current_view">+ Save current view…</string>
     <string name="save_current_view_title">Save current view</string>
     <string name="save_current_view_hint">View name</string>
+    <string name="saved_view_overwrite">Overwrite with current view</string>
+    <string name="saved_view_delete">Delete</string>
+    <string name="saved_view_delete_title">Delete saved view</string>
+    <string name="saved_view_delete_message">Delete \'%1$s\'?</string>
     <string name="nav_drawer_uncategorised">Uncategorised</string>
     <string name="action_settings">Settings</string>
     <string name="edit">Edit</string>

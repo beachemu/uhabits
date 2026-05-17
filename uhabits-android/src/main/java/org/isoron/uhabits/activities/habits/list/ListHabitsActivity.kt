@@ -140,6 +140,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         }
         rootView.drawerView.onSavedViewTapped = { view -> applySavedView(view) }
         rootView.drawerView.onSaveCurrentView = { showSaveCurrentViewDialog() }
+        rootView.drawerView.onOverwriteSavedView = { view -> overwriteSavedView(view) }
+        rootView.drawerView.onDeleteSavedView = { view -> showDeleteSavedViewDialog(view) }
 
         menu.onSeedDemoData = { seedDemoData() }
     }
@@ -177,6 +179,43 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             }
         }
         dialog.show()
+    }
+
+    private fun overwriteSavedView(view: SavedView) {
+        val rawSelection = rootView.drawerView.selectedSubcategoryIds
+        val includeUncategorised = UNCATEGORISED_ID in rawSelection
+        val ids = rawSelection - UNCATEGORISED_ID
+        val (field, direction) = orderToSavedViewSort(adapter.primaryOrder)
+        val updated = view.copy(
+            selectedSubcategoryIds = ids,
+            includeUncategorised = includeUncategorised,
+            sortField = field,
+            sortDirection = direction
+        )
+        val repo = appComponent.savedViewRepository
+        scope.launch {
+            withContext(Dispatchers.IO) { repo.save(updated) }
+            rootView.drawerView.reload()
+            Log.i("ListHabitsActivity", "Overwrote saved view '${updated.name}'")
+        }
+    }
+
+    private fun showDeleteSavedViewDialog(view: SavedView) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.saved_view_delete_title)
+            .setMessage(getString(R.string.saved_view_delete_message, view.name))
+            .setPositiveButton(R.string.saved_view_delete) { _, _ -> deleteSavedView(view) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteSavedView(view: SavedView) {
+        val repo = appComponent.savedViewRepository
+        scope.launch {
+            withContext(Dispatchers.IO) { repo.remove(view) }
+            rootView.drawerView.reload()
+            Log.i("ListHabitsActivity", "Deleted saved view '${view.name}'")
+        }
     }
 
     private fun persistCurrentView(name: String) {
