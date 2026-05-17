@@ -19,6 +19,7 @@
 package org.isoron.uhabits.core.ui.screens.habits.list
 
 import org.isoron.uhabits.core.commands.ArchiveHabitsCommand
+import org.isoron.uhabits.core.commands.AssignCategoryToHabitsCommand
 import org.isoron.uhabits.core.commands.ChangeHabitColorCommand
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
@@ -85,6 +86,17 @@ class ListHabitsSelectionMenuBehavior @Inject constructor(
         adapter.clearSelection()
     }
 
+    fun onAssignCategory() {
+        val selected = adapter.getSelected()
+        if (selected.isEmpty()) return
+        screen.showCategoryAssignmentPicker { categoryId, subcategoryId ->
+            commandRunner.run(
+                AssignCategoryToHabitsCommand(habitList, selected, categoryId, subcategoryId)
+            )
+            adapter.clearSelection()
+        }
+    }
+
     interface Adapter {
         fun clearSelection()
         fun getSelected(): List<Habit>
@@ -103,5 +115,9 @@ class ListHabitsSelectionMenuBehavior @Inject constructor(
         )
 
         fun showEditHabitsScreen(selected: List<Habit>)
+
+        fun showCategoryAssignmentPicker(
+            callback: (categoryId: Long?, subcategoryId: Long?) -> Unit
+        )
     }
 }

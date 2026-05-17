@@ -61,6 +61,11 @@ open class Preferences(private val storage: Storage) {
         set(value) {
             storage.putString("pref_last_selected_subcategory_ids", joinLongs(value.toLongArray()))
         }
+    var lastSelectedCategoryIds: Set<Long>
+        get() = splitLongs(storage.getString("pref_last_selected_category_ids", "")).toSet()
+        set(value) {
+            storage.putString("pref_last_selected_category_ids", joinLongs(value.toLongArray()))
+        }
     var lastIncludeUncategorised: Boolean
         get() = storage.getBoolean("pref_last_include_uncategorised", false)
         set(value) {

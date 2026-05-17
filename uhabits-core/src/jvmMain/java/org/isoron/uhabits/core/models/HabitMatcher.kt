@@ -24,6 +24,7 @@ data class HabitMatcher(
     val isCompletedAllowed: Boolean = true,
     val isEnteredAllowed: Boolean = true,
     val selectedSubcategoryIds: Set<Long>? = null,
+    val selectedCategoryIds: Set<Long>? = null,
     val includeUncategorised: Boolean = false
 ) {
     fun matches(habit: Habit): Boolean {
@@ -31,14 +32,15 @@ data class HabitMatcher(
         if (isReminderRequired && !habit.hasReminder()) return false
         if (!isCompletedAllowed && habit.isCompletedToday()) return false
         if (!isEnteredAllowed && habit.isEnteredToday()) return false
-        val filter = selectedSubcategoryIds
-        if (filter != null) {
+        val hasFilter = selectedSubcategoryIds != null || selectedCategoryIds != null
+        if (hasFilter) {
             val subId = habit.subcategoryId
-            if (subId == null) {
-                if (!includeUncategorised) return false
-            } else {
-                if (subId !in filter) return false
-            }
+            val catId = habit.categoryId
+            val matchesSub = subId != null && selectedSubcategoryIds?.contains(subId) == true
+            val matchesCat = subId == null && catId != null &&
+                selectedCategoryIds?.contains(catId) == true
+            val matchesUncategorised = subId == null && catId == null && includeUncategorised
+            if (!matchesSub && !matchesCat && !matchesUncategorised) return false
         }
         return true
     }

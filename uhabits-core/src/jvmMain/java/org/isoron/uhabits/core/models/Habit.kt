@@ -36,6 +36,7 @@ data class Habit(
     var type: HabitType = HabitType.YES_NO,
     var unit: String = "",
     var uuid: String? = null,
+    var categoryId: Long? = null,
     var subcategoryId: Long? = null,
     val computedEntries: EntryList,
     val originalEntries: EntryList,
@@ -123,6 +124,7 @@ data class Habit(
         this.type = other.type
         this.unit = other.unit
         this.uuid = other.uuid
+        this.categoryId = other.categoryId
         this.subcategoryId = other.subcategoryId
     }
 
@@ -144,6 +146,7 @@ data class Habit(
         if (type != other.type) return false
         if (unit != other.unit) return false
         if (uuid != other.uuid) return false
+        if (categoryId != other.categoryId) return false
         if (subcategoryId != other.subcategoryId) return false
 
         return true
@@ -164,6 +167,7 @@ data class Habit(
         result = 31 * result + type.value
         result = 31 * result + unit.hashCode()
         result = 31 * result + (uuid?.hashCode() ?: 0)
+        result = 31 * result + (categoryId?.hashCode() ?: 0)
         result = 31 * result + (subcategoryId?.hashCode() ?: 0)
         return result
     }

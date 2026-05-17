@@ -133,10 +133,15 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         drawerToggle.syncState()
 
         val filterState = appComponent.habitListFilterState
-        rootView.drawerView.onSelectionChanged = { selection ->
-            val includeUncategorised = UNCATEGORISED_ID in selection
-            val realIds = selection - UNCATEGORISED_ID
-            filterState.update(realIds, includeUncategorised)
+        rootView.drawerView.applySelection(
+            filterState.selectedSubcategoryIds,
+            filterState.selectedCategoryIds,
+            filterState.includeUncategorised
+        )
+        rootView.drawerView.onSelectionChanged = { subSelection, catSelection ->
+            val includeUncategorised = UNCATEGORISED_ID in subSelection
+            val realSubs = subSelection - UNCATEGORISED_ID
+            filterState.update(realSubs, catSelection, includeUncategorised)
         }
         rootView.drawerView.onSavedViewTapped = { view -> applySavedView(view) }
         rootView.drawerView.onSaveCurrentView = { showSaveCurrentViewDialog() }
@@ -148,8 +153,16 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     }
 
     private fun applySavedView(view: SavedView) {
-        rootView.drawerView.applySelection(view.selectedSubcategoryIds, view.includeUncategorised)
-        appComponent.habitListFilterState.update(view.selectedSubcategoryIds, view.includeUncategorised)
+        rootView.drawerView.applySelection(
+            view.selectedSubcategoryIds,
+            view.selectedCategoryIds,
+            view.includeUncategorised
+        )
+        appComponent.habitListFilterState.update(
+            view.selectedSubcategoryIds,
+            view.selectedCategoryIds,
+            view.includeUncategorised
+        )
         adapter.primaryOrder = savedViewSortToOrder(view.sortField, view.sortDirection)
         rootView.drawerLayout.closeDrawer(Gravity.START)
     }
@@ -185,10 +198,12 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     private fun overwriteSavedView(view: SavedView) {
         val rawSelection = rootView.drawerView.selectedSubcategoryIds
         val includeUncategorised = UNCATEGORISED_ID in rawSelection
-        val ids = rawSelection - UNCATEGORISED_ID
+        val subIds = rawSelection - UNCATEGORISED_ID
+        val catIds = rootView.drawerView.selectedCategoryIds
         val (field, direction) = orderToSavedViewSort(adapter.primaryOrder)
         val updated = view.copy(
-            selectedSubcategoryIds = ids,
+            selectedSubcategoryIds = subIds,
+            selectedCategoryIds = catIds,
             includeUncategorised = includeUncategorised,
             sortField = field,
             sortDirection = direction
@@ -223,7 +238,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         if (name.isEmpty()) return
         val rawSelection = rootView.drawerView.selectedSubcategoryIds
         val includeUncategorised = UNCATEGORISED_ID in rawSelection
-        val ids = rawSelection - UNCATEGORISED_ID
+        val subIds = rawSelection - UNCATEGORISED_ID
+        val catIds = rootView.drawerView.selectedCategoryIds
         val (field, direction) = orderToSavedViewSort(adapter.primaryOrder)
         val repo = appComponent.savedViewRepository
         scope.launch {
@@ -232,7 +248,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
                 val nextPosition = (existing.maxOfOrNull { it.position } ?: -1) + 1
                 val view = SavedView(
                     name = name,
-                    selectedSubcategoryIds = ids,
+                    selectedSubcategoryIds = subIds,
+                    selectedCategoryIds = catIds,
                     includeUncategorised = includeUncategorised,
                     sortField = field,
                     sortDirection = direction,
@@ -293,6 +310,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
             habit.frequency = Frequency.DAILY
             habit.position = index
             habit.subcategoryId = subId
+            habit.categoryId = subId?.let { subcategoryRepo.find(it)?.categoryId }
             habitList.add(habit)
             habit.recompute()
         }

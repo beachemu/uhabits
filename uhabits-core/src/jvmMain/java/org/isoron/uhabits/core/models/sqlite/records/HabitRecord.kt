@@ -88,6 +88,9 @@ class HabitRecord {
     @field:Column
     var uuid: String? = null
 
+    @field:Column(name = "category_id")
+    var categoryId: Long? = null
+
     @field:Column(name = "subcategory_id")
     var subcategoryId: Long? = null
 
@@ -105,6 +108,7 @@ class HabitRecord {
         position = model.position
         question = model.question
         uuid = model.uuid
+        categoryId = model.categoryId
         subcategoryId = model.subcategoryId
         val (numerator, denominator) = model.frequency
         freqNum = numerator
@@ -134,6 +138,7 @@ class HabitRecord {
         habit.unit = unit!!
         habit.position = position!!
         habit.uuid = uuid
+        habit.categoryId = categoryId
         habit.subcategoryId = subcategoryId
         if (reminderHour != null && reminderMin != null) {
             habit.reminder = Reminder(

@@ -28,6 +28,8 @@ class HabitListFilterState @Inject constructor(
 ) {
     var selectedSubcategoryIds: Set<Long> = preferences.lastSelectedSubcategoryIds
         private set
+    var selectedCategoryIds: Set<Long> = preferences.lastSelectedCategoryIds
+        private set
     var includeUncategorised: Boolean = preferences.lastIncludeUncategorised
         private set
 
@@ -37,11 +39,22 @@ class HabitListFilterState @Inject constructor(
 
     private val listeners = mutableListOf<Listener>()
 
-    fun update(ids: Set<Long>, includeUncategorised: Boolean) {
-        if (ids == selectedSubcategoryIds && includeUncategorised == this.includeUncategorised) return
-        selectedSubcategoryIds = ids.toSet()
+    fun update(
+        subcategoryIds: Set<Long>,
+        categoryIds: Set<Long>,
+        includeUncategorised: Boolean
+    ) {
+        if (subcategoryIds == selectedSubcategoryIds &&
+            categoryIds == selectedCategoryIds &&
+            includeUncategorised == this.includeUncategorised
+        ) {
+            return
+        }
+        selectedSubcategoryIds = subcategoryIds.toSet()
+        selectedCategoryIds = categoryIds.toSet()
         this.includeUncategorised = includeUncategorised
         preferences.lastSelectedSubcategoryIds = selectedSubcategoryIds
+        preferences.lastSelectedCategoryIds = selectedCategoryIds
         preferences.lastIncludeUncategorised = includeUncategorised
         listeners.toList().forEach { it.onFilterChanged() }
     }
@@ -55,5 +68,7 @@ class HabitListFilterState @Inject constructor(
     }
 
     val isEmpty: Boolean
-        get() = selectedSubcategoryIds.isEmpty() && !includeUncategorised
+        get() = selectedSubcategoryIds.isEmpty() &&
+            selectedCategoryIds.isEmpty() &&
+            !includeUncategorised
 }

@@ -71,8 +71,10 @@ fun NavigationDrawerContent(
     savedViewRepository: SavedViewRepository,
     reloadVersion: Int,
     selectedSubcategoryIds: Set<Long>,
+    selectedCategoryIds: Set<Long>,
     onSubcategoryCheckedChange: (Long, Boolean) -> Unit,
-    onCategoryToggle: (List<Long>, Boolean) -> Unit,
+    onCategoryOnlyCheckedChange: (Long, Boolean) -> Unit,
+    onCategoryToggle: (Long, List<Long>, Boolean) -> Unit,
     onSavedViewTapped: (SavedView) -> Unit,
     onSaveCurrentView: () -> Unit,
     onOverwriteSavedView: (SavedView) -> Unit,
@@ -99,11 +101,13 @@ fun NavigationDrawerContent(
             val id = category.id ?: continue
             val isExpanded = expanded[id] == true
             val subIds = subsByCategory[id].orEmpty().mapNotNull { it.id }
-            val checkedCount = subIds.count { it in selectedSubcategoryIds }
-            val triState = when {
-                subIds.isEmpty() -> null
-                checkedCount == 0 -> ToggleableState.Off
-                checkedCount == subIds.size -> ToggleableState.On
+            val checkedSubs = subIds.count { it in selectedSubcategoryIds }
+            val categoryOnlyChecked = id in selectedCategoryIds
+            val totalToggleable = subIds.size + 1
+            val totalChecked = checkedSubs + (if (categoryOnlyChecked) 1 else 0)
+            val triState = when (totalChecked) {
+                0 -> ToggleableState.Off
+                totalToggleable -> ToggleableState.On
                 else -> ToggleableState.Indeterminate
             }
             CategoryRow(
@@ -111,7 +115,7 @@ fun NavigationDrawerContent(
                 expanded = isExpanded,
                 triState = triState,
                 onTriStateClick = {
-                    onCategoryToggle(subIds, triState != ToggleableState.On)
+                    onCategoryToggle(id, subIds, triState != ToggleableState.On)
                 },
                 onToggle = { expanded[id] = !isExpanded }
             )
@@ -124,6 +128,11 @@ fun NavigationDrawerContent(
                         onCheckedChange = { onSubcategoryCheckedChange(subId, it) }
                     )
                 }
+                CategoryOnlyRow(
+                    category = category,
+                    checked = categoryOnlyChecked,
+                    onCheckedChange = { onCategoryOnlyCheckedChange(id, it) }
+                )
             }
         }
         UncategorisedRow(
@@ -264,6 +273,39 @@ private fun SubcategoryRow(
             text = subcategory.name,
             color = tint,
             fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun CategoryOnlyRow(
+    category: Category,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    val tint = Color(category.color.toFixedAndroidColor())
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 40.dp, top = 2.dp, end = 16.dp, bottom = 2.dp)
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = tint,
+                uncheckedColor = tint
+            )
+        )
+        Text(
+            text = stringResource(R.string.nav_drawer_no_subcategory),
+            color = tint,
+            fontSize = 14.sp,
+            fontStyle = FontStyle.Italic,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

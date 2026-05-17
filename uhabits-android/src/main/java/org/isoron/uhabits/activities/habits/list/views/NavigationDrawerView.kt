@@ -44,13 +44,17 @@ class NavigationDrawerView @Inject constructor(
     private val savedViewRepository: SavedViewRepository
 ) : AbstractComposeView(context) {
 
-    private val selected: SnapshotStateMap<Long, Boolean> = mutableStateMapOf()
+    private val selectedSubs: SnapshotStateMap<Long, Boolean> = mutableStateMapOf()
+    private val selectedCats: SnapshotStateMap<Long, Boolean> = mutableStateMapOf()
     private var reloadVersion by mutableStateOf(0)
 
     val selectedSubcategoryIds: Set<Long>
-        get() = selected.filterValues { it }.keys
+        get() = selectedSubs.filterValues { it }.keys
 
-    var onSelectionChanged: ((Set<Long>) -> Unit)? = null
+    val selectedCategoryIds: Set<Long>
+        get() = selectedCats.filterValues { it }.keys
+
+    var onSelectionChanged: ((Set<Long>, Set<Long>) -> Unit)? = null
     var onSavedViewTapped: ((SavedView) -> Unit)? = null
     var onSaveCurrentView: (() -> Unit)? = null
     var onOverwriteSavedView: ((SavedView) -> Unit)? = null
@@ -61,10 +65,20 @@ class NavigationDrawerView @Inject constructor(
         reloadVersion++
     }
 
-    fun applySelection(ids: Set<Long>, includeUncategorised: Boolean) {
-        selected.clear()
-        ids.forEach { selected[it] = true }
-        if (includeUncategorised) selected[UNCATEGORISED_ID] = true
+    fun applySelection(
+        subIds: Set<Long>,
+        catIds: Set<Long>,
+        includeUncategorised: Boolean
+    ) {
+        selectedSubs.clear()
+        subIds.forEach { selectedSubs[it] = true }
+        if (includeUncategorised) selectedSubs[UNCATEGORISED_ID] = true
+        selectedCats.clear()
+        catIds.forEach { selectedCats[it] = true }
+    }
+
+    private fun emitSelection() {
+        onSelectionChanged?.invoke(selectedSubcategoryIds, selectedCategoryIds)
     }
 
     @Composable
@@ -76,17 +90,24 @@ class NavigationDrawerView @Inject constructor(
                 savedViewRepository = savedViewRepository,
                 reloadVersion = reloadVersion,
                 selectedSubcategoryIds = selectedSubcategoryIds,
+                selectedCategoryIds = selectedCategoryIds,
                 onSubcategoryCheckedChange = { id, checked ->
-                    if (checked) selected[id] = true else selected.remove(id)
-                    onSelectionChanged?.invoke(selectedSubcategoryIds)
+                    if (checked) selectedSubs[id] = true else selectedSubs.remove(id)
+                    emitSelection()
                 },
-                onCategoryToggle = { ids, checked ->
+                onCategoryOnlyCheckedChange = { id, checked ->
+                    if (checked) selectedCats[id] = true else selectedCats.remove(id)
+                    emitSelection()
+                },
+                onCategoryToggle = { categoryId, subIds, checked ->
                     if (checked) {
-                        ids.forEach { selected[it] = true }
+                        subIds.forEach { selectedSubs[it] = true }
+                        selectedCats[categoryId] = true
                     } else {
-                        ids.forEach { selected.remove(it) }
+                        subIds.forEach { selectedSubs.remove(it) }
+                        selectedCats.remove(categoryId)
                     }
-                    onSelectionChanged?.invoke(selectedSubcategoryIds)
+                    emitSelection()
                 },
                 onSavedViewTapped = { view -> onSavedViewTapped?.invoke(view) },
                 onSaveCurrentView = { onSaveCurrentView?.invoke() },

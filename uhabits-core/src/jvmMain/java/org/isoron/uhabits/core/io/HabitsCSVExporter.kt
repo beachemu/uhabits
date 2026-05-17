@@ -45,7 +45,8 @@ import kotlin.math.min
 class HabitsCSVExporter(
     private val allHabits: HabitList,
     private val selectedHabits: List<Habit>,
-    dir: File
+    dir: File,
+    private val resolveCategory: (Long?) -> Pair<String, String> = { "" to "" }
 ) {
     private val generatedDirs = LinkedList<String>()
     private val generatedFilenames = LinkedList<String>()
@@ -86,7 +87,7 @@ class HabitsCSVExporter(
         File(exportDirName).mkdirs()
         val out = FileWriter(exportDirName + filename)
         generatedFilenames.add(filename)
-        allHabits.writeCSV(out)
+        allHabits.writeCSV(out, resolveCategory)
         out.close()
         for (h in selectedHabits) {
             val sane = sanitizeFilename(h.name)

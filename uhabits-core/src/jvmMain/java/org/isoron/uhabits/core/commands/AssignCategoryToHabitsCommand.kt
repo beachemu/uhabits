@@ -16,35 +16,22 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.isoron.uhabits.core.tasks
+package org.isoron.uhabits.core.commands
 
-import org.isoron.uhabits.core.io.HabitsCSVExporter
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
-import java.io.File
 
-class ExportCSVTask(
-    private val habitList: HabitList,
-    private val selectedHabits: List<Habit>,
-    private val outputDir: File,
-    private val resolveCategory: (Long?) -> Pair<String, String> = { "" to "" },
-    private val listener: Listener
-) : Task {
-    private var archiveFilename: String? = null
-    override fun doInBackground() {
-        try {
-            val exporter = HabitsCSVExporter(habitList, selectedHabits, outputDir, resolveCategory)
-            archiveFilename = exporter.writeArchive()
-        } catch (e: Exception) {
-            e.printStackTrace()
+data class AssignCategoryToHabitsCommand(
+    val habitList: HabitList,
+    val selected: List<Habit>,
+    val newCategoryId: Long?,
+    val newSubcategoryId: Long?
+) : Command {
+    override fun run() {
+        for (h in selected) {
+            h.categoryId = newCategoryId
+            h.subcategoryId = newSubcategoryId
         }
-    }
-
-    override fun onPostExecute() {
-        listener.onExportCSVFinished(archiveFilename)
-    }
-
-    fun interface Listener {
-        fun onExportCSVFinished(archiveFilename: String?)
+        habitList.update(selected)
     }
 }

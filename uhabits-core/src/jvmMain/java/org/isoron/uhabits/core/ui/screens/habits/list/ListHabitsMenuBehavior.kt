@@ -109,15 +109,19 @@ class ListHabitsMenuBehavior @Inject constructor(
     }
 
     private fun updateAdapterFilter() {
-        val selectedIds: Set<Long>? =
-            if (filterState.isEmpty) null else filterState.selectedSubcategoryIds
+        val hasFilter = !filterState.isEmpty
+        val selectedSubIds: Set<Long>? =
+            if (hasFilter) filterState.selectedSubcategoryIds else null
+        val selectedCatIds: Set<Long>? =
+            if (hasFilter) filterState.selectedCategoryIds else null
         val includeUncategorised = filterState.includeUncategorised
         if (preferences.areQuestionMarksEnabled) {
             adapter.setFilter(
                 HabitMatcher(
                     isArchivedAllowed = showArchived,
                     isEnteredAllowed = showCompleted,
-                    selectedSubcategoryIds = selectedIds,
+                    selectedSubcategoryIds = selectedSubIds,
+                    selectedCategoryIds = selectedCatIds,
                     includeUncategorised = includeUncategorised
                 )
             )
@@ -126,7 +130,8 @@ class ListHabitsMenuBehavior @Inject constructor(
                 HabitMatcher(
                     isArchivedAllowed = showArchived,
                     isCompletedAllowed = showCompleted,
-                    selectedSubcategoryIds = selectedIds,
+                    selectedSubcategoryIds = selectedSubIds,
+                    selectedCategoryIds = selectedCatIds,
                     includeUncategorised = includeUncategorised
                 )
             )

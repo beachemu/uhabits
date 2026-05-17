@@ -179,6 +179,28 @@ class ListHabitsScreen
         activity.startActivity(intent)
     }
 
+    override fun showCategoryAssignmentPicker(
+        callback: (categoryId: Long?, subcategoryId: Long?) -> Unit
+    ) {
+        val component = (activity.application as org.isoron.uhabits.HabitsApplication).component
+        org.isoron.uhabits.activities.categories.CategoryPicker.pickCategory(
+            activity,
+            component.categoryRepository
+        ) { categoryId ->
+            if (categoryId == null) {
+                callback(null, null)
+            } else {
+                org.isoron.uhabits.activities.categories.CategoryPicker.pickSubcategory(
+                    activity,
+                    component.subcategoryRepository,
+                    categoryId
+                ) { subcategoryId ->
+                    callback(categoryId, subcategoryId)
+                }
+            }
+        }
+    }
+
     override fun showFAQScreen() {
         val intent = intentFactory.viewFAQ(activity)
         activity.startActivity(intent)

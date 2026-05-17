@@ -63,19 +63,19 @@ class HabitListFilterStateTest {
             }
         )
 
-        state.update(setOf(1L, 2L), includeUncategorised = false)
+        state.update(setOf(1L, 2L), emptySet(), includeUncategorised = false)
         assertEquals(1, fired)
         assertEquals(setOf(1L, 2L), state.selectedSubcategoryIds)
         assertFalse(state.isEmpty)
 
-        state.update(setOf(1L, 2L), includeUncategorised = false)
+        state.update(setOf(1L, 2L), emptySet(), includeUncategorised = false)
         assertEquals(1, fired)
 
-        state.update(setOf(1L, 2L), includeUncategorised = true)
+        state.update(setOf(1L, 2L), emptySet(), includeUncategorised = true)
         assertEquals(2, fired)
         assertTrue(state.includeUncategorised)
 
-        state.update(emptySet(), includeUncategorised = false)
+        state.update(emptySet(), emptySet(), includeUncategorised = false)
         assertEquals(3, fired)
         assertTrue(state.isEmpty)
     }
@@ -90,10 +90,10 @@ class HabitListFilterStateTest {
             }
         }
         state.addListener(listener)
-        state.update(setOf(1L), includeUncategorised = false)
+        state.update(setOf(1L), emptySet(), includeUncategorised = false)
         assertEquals(1, fired)
         state.removeListener(listener)
-        state.update(setOf(2L), includeUncategorised = false)
+        state.update(setOf(2L), emptySet(), includeUncategorised = false)
         assertEquals(1, fired)
     }
 
@@ -102,10 +102,11 @@ class HabitListFilterStateTest {
         val storage = InMemoryStorage()
         val prefs = Preferences(storage)
         val first = HabitListFilterState(prefs)
-        first.update(setOf(7L, 9L), includeUncategorised = true)
+        first.update(setOf(7L, 9L), setOf(3L), includeUncategorised = true)
 
         val second = HabitListFilterState(Preferences(storage))
         assertEquals(setOf(7L, 9L), second.selectedSubcategoryIds)
+        assertEquals(setOf(3L), second.selectedCategoryIds)
         assertTrue(second.includeUncategorised)
     }
 }

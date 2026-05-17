@@ -36,6 +36,7 @@
     <string name="saved_view_delete_title">Delete saved view</string>
     <string name="saved_view_delete_message">Delete \'%1$s\'?</string>
     <string name="nav_drawer_uncategorised">Uncategorised</string>
+    <string name="nav_drawer_no_subcategory">(no subcategory)</string>
     <string name="nav_drawer_manage_categories">Manage categories…</string>
     <string name="category">Category</string>
     <string name="subcategory">Subcategory</string>

@@ -179,7 +179,10 @@ abstract class HabitList : Iterable<Habit> {
      * @throws IOException if write operations fail
      */
     @Throws(IOException::class)
-    fun writeCSV(out: Writer) {
+    fun writeCSV(
+        out: Writer,
+        resolveCategory: (Long?) -> Pair<String, String> = { "" to "" }
+    ) {
         val header = arrayOf(
             "Position",
             "Name",
@@ -192,12 +195,15 @@ abstract class HabitList : Iterable<Habit> {
             "Unit",
             "Target Type",
             "Target Value",
-            "Archived?"
+            "Archived?",
+            "Category",
+            "Subcategory"
         )
         val csv = CSVWriter(out)
         csv.writeNext(header, false)
         for (habit in this) {
             val (numerator, denominator) = habit.frequency
+            val (categoryName, subcategoryName) = resolveCategory(habit.subcategoryId)
             val cols = arrayOf(
                 String.format(Locale.US, "%03d", indexOf(habit) + 1),
                 habit.name,
@@ -210,7 +216,9 @@ abstract class HabitList : Iterable<Habit> {
                 if (habit.isNumerical) habit.unit else "",
                 if (habit.isNumerical) habit.targetType.name else "",
                 if (habit.isNumerical) habit.targetValue.toString() else "",
-                habit.isArchived.toString()
+                habit.isArchived.toString(),
+                categoryName,
+                subcategoryName
             )
             csv.writeNext(cols, false)
         }

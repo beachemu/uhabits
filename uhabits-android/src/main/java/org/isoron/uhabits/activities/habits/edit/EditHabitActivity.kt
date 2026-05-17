@@ -119,8 +119,8 @@ class EditHabitActivity : AppCompatActivity() {
             binding.notesInput.setText(habit.description)
             binding.unitInput.setText(habit.unit)
             binding.targetInput.setText(habit.targetValue.toString())
+            categoryId = habit.categoryId
             subcategoryId = habit.subcategoryId
-            categoryId = subcategoryId?.let { component.subcategoryRepository.find(it)?.categoryId }
         } else {
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
@@ -288,6 +288,7 @@ class EditHabitActivity : AppCompatActivity() {
             habit.reminder = null
         }
 
+        habit.categoryId = categoryId
         habit.subcategoryId = subcategoryId
 
         habit.frequency = Frequency(freqNum, freqDen)
@@ -347,42 +348,32 @@ class EditHabitActivity : AppCompatActivity() {
 
     private fun showCategoryPicker() {
         val component = (application as HabitsApplication).component
-        val categories = component.categoryRepository.findAll()
-        val labels = mutableListOf(getString(R.string.uncategorised))
-        labels.addAll(categories.map { it.name })
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(R.string.category)
-        builder.setItems(labels.toTypedArray()) { dialog, which ->
-            if (which == 0) {
+        org.isoron.uhabits.activities.categories.CategoryPicker.pickCategory(
+            this,
+            component.categoryRepository
+        ) { picked ->
+            if (picked == null) {
                 categoryId = null
                 subcategoryId = null
             } else {
-                val selected = categories[which - 1]
-                if (selected.id != categoryId) {
-                    subcategoryId = null
-                }
-                categoryId = selected.id
+                if (picked != categoryId) subcategoryId = null
+                categoryId = picked
             }
             populateCategory()
-            dialog.dismiss()
         }
-        builder.create().dismissCurrentAndShow()
     }
 
     private fun showSubcategoryPicker() {
         val catId = categoryId ?: return
         val component = (application as HabitsApplication).component
-        val subcategories = component.subcategoryRepository.findByCategory(catId)
-        val labels = mutableListOf(getString(R.string.none))
-        labels.addAll(subcategories.map { it.name })
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(R.string.subcategory)
-        builder.setItems(labels.toTypedArray()) { dialog, which ->
-            subcategoryId = if (which == 0) null else subcategories[which - 1].id
+        org.isoron.uhabits.activities.categories.CategoryPicker.pickSubcategory(
+            this,
+            component.subcategoryRepository,
+            catId
+        ) { picked ->
+            subcategoryId = picked
             populateCategory()
-            dialog.dismiss()
         }
-        builder.create().dismissCurrentAndShow()
     }
 
     private fun populateReminder() {

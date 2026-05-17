@@ -57,6 +57,7 @@ class CategoryRepository(private val db: Database) {
                     "where subcategory_id in (select id from subcategories where category_id=?)",
                 id
             )
+            db.execute("update habits set category_id=null where category_id=?", id)
             db.execute("delete from subcategories where category_id=?", id)
             db.execute("delete from categories where id=?", id)
             category.id = null

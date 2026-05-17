@@ -22,6 +22,7 @@ data class SavedView(
     var id: Long? = null,
     var name: String = "",
     var selectedSubcategoryIds: Set<Long> = emptySet(),
+    var selectedCategoryIds: Set<Long> = emptySet(),
     var includeUncategorised: Boolean = false,
     var sortField: SavedViewSortField = SavedViewSortField.NAME,
     var sortDirection: SavedViewSortDirection = SavedViewSortDirection.ASC,

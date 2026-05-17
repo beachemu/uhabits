@@ -21,16 +21,33 @@ package org.isoron.uhabits.core.tasks
 
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.sqlite.CategoryRepository
+import org.isoron.uhabits.core.models.sqlite.SubcategoryRepository
 import java.io.File
 import javax.inject.Inject
 
 class ExportCSVTaskFactory
 @Inject constructor(
-    val habitList: HabitList
+    val habitList: HabitList,
+    val categoryRepository: CategoryRepository,
+    val subcategoryRepository: SubcategoryRepository
 ) {
     fun create(
         selectedHabits: List<Habit>,
         outputDir: File,
         listener: ExportCSVTask.Listener
-    ) = ExportCSVTask(habitList, selectedHabits, outputDir, listener)
+    ): ExportCSVTask {
+        val subcategoriesById = subcategoryRepository.findAll().associateBy { it.id }
+        val categoriesById = categoryRepository.findAll().associateBy { it.id }
+        val resolveCategory: (Long?) -> Pair<String, String> = { subcategoryId ->
+            val subcategory = subcategoryId?.let { subcategoriesById[it] }
+            if (subcategory == null) {
+                "" to ""
+            } else {
+                val category = categoriesById[subcategory.categoryId]
+                (category?.name ?: "") to subcategory.name
+            }
+        }
+        return ExportCSVTask(habitList, selectedHabits, outputDir, resolveCategory, listener)
+    }
 }

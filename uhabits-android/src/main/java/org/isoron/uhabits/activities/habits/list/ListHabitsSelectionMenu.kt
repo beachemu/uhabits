@@ -116,6 +116,11 @@ class ListHabitsSelectionMenu @Inject constructor(
                 return true
             }
 
+            R.id.action_assign_category -> {
+                behavior.onAssignCategory()
+                return true
+            }
+
             R.id.action_notify -> {
                 for (h in listAdapter.selected)
                     notificationTray.show(h, DateUtils.getToday(), 0)

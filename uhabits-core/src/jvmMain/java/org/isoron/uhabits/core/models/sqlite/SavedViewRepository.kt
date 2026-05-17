@@ -31,18 +31,29 @@ class SavedViewRepository(private val db: Database) {
         val record = repository.find(id) ?: return null
         val view = SavedView()
         record.copyTo(view)
-        view.selectedSubcategoryIds = loadSubcategoryIds(id)
+        view.selectedSubcategoryIds = loadJoinIds(
+            "saved_view_subcategories",
+            "subcategory_id",
+            id
+        )
+        view.selectedCategoryIds = loadJoinIds(
+            "saved_view_categories",
+            "category_id",
+            id
+        )
         return view
     }
 
     fun findAll(): List<SavedView> {
         val records = repository.findAll("order by position")
         if (records.isEmpty()) return emptyList()
-        val joinByView = loadAllJoinRows()
+        val subsByView = loadAllJoinRows("saved_view_subcategories", "subcategory_id")
+        val catsByView = loadAllJoinRows("saved_view_categories", "category_id")
         return records.map { record ->
             val view = SavedView()
             record.copyTo(view)
-            view.selectedSubcategoryIds = joinByView[record.id] ?: emptySet()
+            view.selectedSubcategoryIds = subsByView[record.id] ?: emptySet()
+            view.selectedCategoryIds = catsByView[record.id] ?: emptySet()
             view
         }
     }
@@ -64,6 +75,16 @@ class SavedViewRepository(private val db: Database) {
                     )
                 )
             }
+            db.delete("saved_view_categories", "saved_view_id=?", viewId.toString())
+            for (categoryId in view.selectedCategoryIds) {
+                db.insert(
+                    "saved_view_categories",
+                    mapOf(
+                        "saved_view_id" to viewId,
+                        "category_id" to categoryId
+                    )
+                )
+            }
         }
     }
 
@@ -71,15 +92,16 @@ class SavedViewRepository(private val db: Database) {
         val id = view.id ?: return
         repository.executeAsTransaction {
             db.delete("saved_view_subcategories", "saved_view_id=?", id.toString())
+            db.delete("saved_view_categories", "saved_view_id=?", id.toString())
             db.execute("delete from saved_views where id=?", id)
             view.id = null
         }
     }
 
-    private fun loadSubcategoryIds(savedViewId: Long): Set<Long> {
+    private fun loadJoinIds(table: String, idColumn: String, savedViewId: Long): Set<Long> {
         val ids = mutableSetOf<Long>()
         db.query(
-            "select subcategory_id from saved_view_subcategories where saved_view_id=?",
+            "select $idColumn from $table where saved_view_id=?",
             savedViewId.toString()
         ).use { c ->
             while (c.moveToNext()) ids.add(c.getLong(0)!!)
@@ -87,13 +109,13 @@ class SavedViewRepository(private val db: Database) {
         return ids
     }
 
-    private fun loadAllJoinRows(): Map<Long, Set<Long>> {
+    private fun loadAllJoinRows(table: String, idColumn: String): Map<Long, Set<Long>> {
         val byView = mutableMapOf<Long, MutableSet<Long>>()
-        db.query("select saved_view_id, subcategory_id from saved_view_subcategories").use { c ->
+        db.query("select saved_view_id, $idColumn from $table").use { c ->
             while (c.moveToNext()) {
                 val viewId = c.getLong(0)!!
-                val subId = c.getLong(1)!!
-                byView.getOrPut(viewId) { mutableSetOf() }.add(subId)
+                val rowId = c.getLong(1)!!
+                byView.getOrPut(viewId) { mutableSetOf() }.add(rowId)
             }
         }
         return byView
