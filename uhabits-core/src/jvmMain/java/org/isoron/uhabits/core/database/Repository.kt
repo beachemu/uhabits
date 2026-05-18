@@ -151,12 +151,17 @@ class Repository<T>(
     }
 
     private fun copyFieldFromCursor(record: T, field: Field, c: Cursor, index: Int) {
+        val type = field.type
         when {
-            field.type.isAssignableFrom(java.lang.Integer::class.java) -> field[record] = c.getInt(index)
-            field.type.isAssignableFrom(java.lang.Long::class.java) -> field[record] = c.getLong(index)
-            field.type.isAssignableFrom(java.lang.Double::class.java) -> field[record] = c.getDouble(index)
-            field.type.isAssignableFrom(java.lang.String::class.java) -> field[record] = c.getString(index)
-            else -> throw RuntimeException("Type not supported: ${field.type.name} ${field.name}")
+            type.isAssignableFrom(java.lang.Integer::class.java) || type == java.lang.Integer.TYPE ->
+                field[record] = c.getInt(index)
+            type.isAssignableFrom(java.lang.Long::class.java) || type == java.lang.Long.TYPE ->
+                field[record] = c.getLong(index)
+            type.isAssignableFrom(java.lang.Double::class.java) || type == java.lang.Double.TYPE ->
+                field[record] = c.getDouble(index)
+            type.isAssignableFrom(java.lang.String::class.java) ->
+                field[record] = c.getString(index)
+            else -> throw RuntimeException("Type not supported: ${type.name} ${field.name}")
         }
     }
 
